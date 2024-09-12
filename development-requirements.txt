@@ -1,9 +1,8 @@
 -r tests/test-requirements.txt
 -r formatting-requirements.txt
+-r linting-requirements.txt
 
-pylint~=3.2
-
--e deps/linox
--e deps/laplax
+-e ./deps/linox
+-e ./deps/laplax
 
 -e .
