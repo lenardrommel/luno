@@ -1,4 +1,4 @@
--r tests/test-requirements.txt
+-r tests/requirements.txt
 -r formatting-requirements.txt
 -r linting-requirements.txt
 
