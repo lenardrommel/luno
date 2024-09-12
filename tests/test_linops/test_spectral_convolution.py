@@ -1,10 +1,14 @@
 import jax
 from jax import numpy as jnp
+import linox
 import numpy as np
 
 from pytest_cases import AUTO, fixture, parametrize
 
 from nola.linops.fno import FixedInputSpectralConvolution
+from nola.linops.fno._spectral_convolution import (
+    FixedInputSpectralConvolutionOuterProduct,
+)
 
 
 @fixture(scope="module")
@@ -18,6 +22,7 @@ from nola.linops.fno import FixedInputSpectralConvolution
         (4,),
         (5,),
         (1, 1),
+        (3, 3),
         (2, 3),
         (3, 2),
         (1, 1, 1),
@@ -57,6 +62,22 @@ def test_matmul_identity_weight_reproduces_input_signal(
     np.testing.assert_allclose(
         output_signal,
         linop._input_signal,
+        rtol=1e-6,
+        atol=1e-6,
+    )
+
+
+def test_outer_product_diagonal(
+    fixed_input_spectral_convolution: FixedInputSpectralConvolution,
+):
+    A = fixed_input_spectral_convolution
+
+    id = linox.Identity(A.shape[1])
+    AAT = linox.congruence_transform(A, id)
+
+    np.testing.assert_allclose(
+        linox.diagonal(AAT),
+        jnp.diag(AAT.todense()),
         rtol=1e-6,
         atol=1e-6,
     )
