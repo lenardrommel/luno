@@ -1,0 +1,6 @@
+-r tests/test-requirements.txt
+-r formatting-requirements.txt
+
+pylint~=3.2
+
+-e .
