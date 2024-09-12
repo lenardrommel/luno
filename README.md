@@ -1,2 +1,1 @@
-# nola
-Laplace Approximations for Bayesian Neural Operators
+# `nola`: Laplace Approximations of Bayesian Neural Operators
