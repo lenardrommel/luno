@@ -3,4 +3,7 @@
 
 pylint~=3.2
 
+-e deps/linox
+-e deps/laplax
+
 -e .
