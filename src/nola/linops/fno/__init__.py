@@ -1,0 +1,1 @@
+from ._spectral_convolution import FixedInputSpectralConvolution
