@@ -51,17 +51,21 @@ def test_matmul_identity_weight_reproduces_input_signal(
     linop = fixed_input_spectral_convolution
 
     # Create and reshape identity weights
-    R_real = jnp.eye(linop._C)
-    R_real = jnp.broadcast_to(R_real[:, None, :], (linop._C, linop._M, linop._C))
+    R_real = jnp.eye(linop.num_channels)
+    R_real = jnp.broadcast_to(
+        R_real[:, None, :], (linop.num_channels, linop.num_modes, linop.num_channels)
+    )
     R = jnp.stack([R_real, jnp.zeros_like(R_real)], axis=0)
     R = R.reshape(-1)
 
     output_signal_flat = linop @ R
-    output_signal = output_signal_flat.reshape(linop._output_grid_shape + (linop._C,))
+    output_signal = output_signal_flat.reshape(
+        linop.output_grid_shape + (linop.num_channels,)
+    )
 
     np.testing.assert_allclose(
         output_signal,
-        linop._input_signal,
+        linop.input_signal,
         rtol=1e-6,
         atol=1e-6,
     )
@@ -72,8 +76,8 @@ def test_outer_product_diagonal(
 ):
     A = fixed_input_spectral_convolution
 
-    id = linox.Identity(A.shape[1])
-    AAT = linox.congruence_transform(A, id)
+    I = linox.Identity(A.shape[1])
+    AAT = linox.congruence_transform(A, I)
 
     np.testing.assert_allclose(
         linox.diagonal(AAT),

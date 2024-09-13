@@ -42,6 +42,7 @@ class FixedInputSpectralConvolution(linox.LinearOperator):
         self,
         input_signal: ArrayLike,
         output_grid_shape: ShapeLike | None = None,
+        input_signal_rfft: ArrayLike | None = None,
     ):
         if jnp.ndim(input_signal) < 2:
             raise ValueError("`input_signal` must have at least 2 dimensions.")
@@ -65,20 +66,47 @@ class FixedInputSpectralConvolution(linox.LinearOperator):
         self._Nout = functools.reduce(operator.mul, self._output_grid_shape, 1)
 
         # Precompute the Fourier transform of the input signal
-        self._z = jnp.fft.rfftn(
-            self._input_signal,
-            axes=tuple(range(self._D)),
-            norm="forward",
-        )  # shape = (M_1, ..., M_D, C)
-        self._z_flat = self._z.reshape(-1, self._z.shape[-1])  # shape = (M, C)
+        if input_signal_rfft is None:
+            input_signal_rfft = jnp.fft.rfftn(
+                self._input_signal,
+                axes=tuple(range(self._D)),
+                norm="forward",
+            )
 
-        self._Ms = self._z.shape[:-1]
+        self._input_signal_rfft = jnp.asarray(
+            input_signal_rfft
+        )  # shape = (M_1, ..., M_D, C)
+        self._z_flat = self._input_signal_rfft.reshape(
+            -1, self._input_signal_rfft.shape[-1]
+        )  # shape = (M, C)
+
+        self._Ms = self._input_signal_rfft.shape[:-1]
         self._M = self._z_flat.shape[0]
 
         super().__init__(
             shape=(self._Nout * self._C, 2 * self._C * self._M * self._C),
             dtype=self._input_signal.dtype,
         )
+
+    @property
+    def input_signal(self) -> jax.Array:
+        return self._input_signal
+
+    @property
+    def output_grid_shape(self) -> tuple[int, ...]:
+        return self._output_grid_shape
+
+    @property
+    def input_signal_rfft(self) -> jax.Array:
+        return self._input_signal_rfft
+
+    @property
+    def num_channels(self) -> int:
+        return self._C
+
+    @property
+    def num_modes(self) -> int:
+        return self._M
 
     def _matmul(self, R: jax.Array) -> jax.Array:
         batch_shape = R.shape[:-2]
@@ -121,12 +149,12 @@ def _(
 def _(AAT: FixedInputSpectralConvolutionOuterProduct) -> jax.Array:
     A = AAT._A
 
-    z = A._z
+    z = A.input_signal_rfft
     z_abs_sq = z.real**2 + z.imag**2
 
     diag_val = jnp.sum(z_abs_sq[..., 0, :])
 
-    if A._input_signal.shape[-2] % 2 == 0:
+    if A.input_signal.shape[-2] % 2 == 0:
         diag_val += 4 * jnp.sum(z_abs_sq[..., 1:-1, :])
         diag_val += jnp.sum(z_abs_sq[..., -1, :])
     else:
