@@ -14,21 +14,21 @@ def parametric_gp() -> nola.randprocs.ParametricGaussianProcess:
 
     input_signal = jax.random.normal(subkey, (5, 2))
 
-    def feature_fn(x):
+    def feature_fns(x):
         return nola.linops.fno.FixedInputSpectralConvolution(
             input_signal,
             x.shape[:-1],
         )  # TODO: This is a bit of a hack...
 
-    weight_dim = feature_fn(jnp.zeros((1, 1))).shape[-1]
+    weight_dim = feature_fns(jnp.zeros((1, 1))).shape[-1]
 
     weight_mean = jax.random.normal(key, (weight_dim,))
     weight_cov = linox.Identity(weight_dim)
 
-    return nola.randprocs.ParametricGaussianProcess(
+    return nola.randprocs.ParametricGaussianProcess.from_weights_and_features(
         weight_mean,
         weight_cov,
-        feature_fn,
+        feature_fns,
     )
 
 

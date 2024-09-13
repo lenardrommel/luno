@@ -10,26 +10,36 @@ from linox.typing import ShapeLike
 class ParametricGaussianProcess:
     def __init__(
         self,
-        weight_mean: ArrayLike,
+        mean_fn: Callable[[ArrayLike], ArrayLike],
         weight_cov: linox.LinearOperator,
-        feature_fn: Callable[[ArrayLike], linox.LinearOperator],
+        feature_fns: Callable[[ArrayLike], linox.LinearOperator],
     ):
-        self._weight_mean = jnp.array(weight_mean)
+        self._mean_fn = mean_fn
+
         self._weight_cov = linox.utils.as_linop(weight_cov)
 
-        self._feature_fn = feature_fn
+        self._feature_fns = feature_fns
 
-    @property
-    def weight_mean(self) -> ArrayLike:
-        return self._weight_mean
+    @classmethod
+    def from_weights_and_features(
+        cls,
+        weight_mean: ArrayLike,
+        weight_cov: linox.LinearOperator,
+        feature_fns: Callable[[ArrayLike], linox.LinearOperator],
+    ):
+        return cls(
+            lambda x: feature_fns(x) @ weight_mean,
+            weight_cov,
+            feature_fns,
+        )
 
     @property
     def weight_cov(self) -> linox.LinearOperator:
         return self._weight_cov
 
     @property
-    def feature_fn(self) -> Callable[[ArrayLike], linox.LinearOperator]:
-        return self._feature_fn
+    def feature_fns(self) -> Callable[[ArrayLike], linox.LinearOperator]:
+        return self._feature_fns
 
     def sample(
         self,
@@ -44,10 +54,9 @@ class ParametricGaussianProcess:
             shape=size + weight_cov_lsqrt.shape[-1:],
         )[..., None]
         weight_sample = weight_cov_lsqrt @ weight_sample
-        weight_sample += self._weight_mean[..., None]
 
         def sample_fn(x: ArrayLike) -> jax.Array:
-            return (self._feature_fn(x) @ weight_sample)[..., 0]
+            return self.mean(x) + (self._feature_fns(x) @ weight_sample)[..., 0]
 
         if x is None:
             return sample_fn
@@ -55,9 +64,7 @@ class ParametricGaussianProcess:
         return sample_fn(x)
 
     def mean(self, x: ArrayLike, /) -> ArrayLike:
-        x = jnp.array(x)
-
-        return self._feature_fn(x) @ self._weight_mean
+        return self._mean_fn(x)
 
     def cov(
         self,
@@ -66,9 +73,9 @@ class ParametricGaussianProcess:
         /,
     ) -> linox.LinearOperator:
         if x1 is None:
-            return linox.congruence_transform(self._feature_fn(x0), self._weight_cov)
+            return linox.congruence_transform(self._feature_fns(x0), self._weight_cov)
 
-        return self._feature_fn(x0) @ self._weight_cov @ self._feature_fn(x1).T
+        return self._feature_fns(x0) @ self._weight_cov @ self._feature_fns(x1).T
 
     def var(self, x: ArrayLike, /) -> ArrayLike:
         x = jnp.array(x)
