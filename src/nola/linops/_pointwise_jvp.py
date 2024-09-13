@@ -26,8 +26,12 @@ class PointwiseJVP(linox.LinearOperator):
         self._N = self._x.shape[0]
 
         self._Dfx_v = jnp.vectorize(
-            lambda x, v: jax.jvp(self._f, (x,), (v,))[1],
-            signature="(din,k),(din,k)->(dout,k)",
+            jax.vmap(
+                lambda x, v: jax.jvp(self._f, (x,), (v,))[1],
+                in_axes=(None, 1),
+                out_axes=1,
+            ),
+            signature="(din),(din,k)->(dout,k)",
         )
 
         super().__init__(
@@ -41,4 +45,4 @@ class PointwiseJVP(linox.LinearOperator):
 
         v = v.reshape(batch_shape + (self._N, self._Df_shape[1], ncols))
         Dfx_v = self._Dfx_v(self._x, v)
-        return Dfx_v.reshape(batch_shape + (self._N, self._Df_shape[0], ncols))
+        return Dfx_v.reshape(batch_shape + (self._N * self._Df_shape[0], ncols))
