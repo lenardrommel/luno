@@ -1,9 +1,8 @@
-from collections.abc import Callable
-
 import jax
 from jax import numpy as jnp
 import linox
 
+from collections.abc import Callable
 from jax.typing import ArrayLike
 from linox.typing import ShapeLike
 
