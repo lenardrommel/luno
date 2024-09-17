@@ -1,2 +1,6 @@
 pytest~=8.3
 pytest-cases~=3.8
+
+neuraloperator>=0.3,<1.0
+wandb  # needed for neuraloperator
+torch_harmonics  # needed for neuraloperator
