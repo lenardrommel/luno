@@ -64,7 +64,7 @@ class Case:
 
         # Sample random mean
         key, subkey = jax.random.split(key)
-        self.mean = jax.random.normal(subkey, shape=_R_size + _W_size)
+        self.mean = jax.random.normal(subkey, shape=(_R_size + _W_size,))
 
         # Sample random precision updates
         key, subkey = jax.random.split(key)
