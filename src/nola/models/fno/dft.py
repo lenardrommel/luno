@@ -19,21 +19,21 @@ def dft_resize(
 
     num_modes_nnz = min(num_modes, z.shape[axis])
 
-    jax.lax.dynamic_update_slice_in_dim(
+    z_m = jax.lax.dynamic_update_slice_in_dim(
         z_m,
         jax.lax.slice_in_dim(z, 0, (num_modes_nnz - 1) // 2 + 1, axis=axis),
         0,
         axis=axis,
     )
 
-    jax.lax.dynamic_update_slice_in_dim(
+    z_m = jax.lax.dynamic_update_slice_in_dim(
         z_m,
         jax.lax.slice_in_dim(z, -(num_modes_nnz - 1) // 2, z.shape[axis], axis=axis),
         -(num_modes_nnz - 1) // 2,
         axis=axis,
     )
 
-    return z
+    return z_m
 
 
 def rdft_resize(
@@ -51,7 +51,7 @@ def rdft_resize(
     # Padding
     z_m = jnp.zeros_like(z, shape=(z.shape[:axis] + (num_modes,) + z.shape[axis + 1 :]))
 
-    jax.lax.dynamic_update_slice_in_dim(z_m, z, 0, axis=axis)
+    z_m = jax.lax.dynamic_update_slice_in_dim(z_m, z, 0, axis=axis)
 
     return z_m
 
