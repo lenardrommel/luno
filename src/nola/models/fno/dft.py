@@ -26,12 +26,18 @@ def dft_resize(
         axis=axis,
     )
 
-    z_m = jax.lax.dynamic_update_slice_in_dim(
-        z_m,
-        jax.lax.slice_in_dim(z, -(num_modes_nnz - 1) // 2, z.shape[axis], axis=axis),
-        -(num_modes_nnz - 1) // 2,
-        axis=axis,
-    )
+    if num_modes_nnz > 1:
+        z_m = jax.lax.dynamic_update_slice_in_dim(
+            z_m,
+            jax.lax.slice_in_dim(
+                z,
+                -(num_modes_nnz - 1) // 2,
+                z.shape[axis],
+                axis=axis,
+            ),
+            -(num_modes_nnz - 1) // 2,
+            axis=axis,
+        )
 
     return z_m
 
