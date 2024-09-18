@@ -25,12 +25,12 @@ def _(
 def _(AAT: CongruenceTransform_FixedInputSpectralConvolution_Identity) -> jax.Array:
     A = AAT._A
 
-    z = A.input_signal_rfft
+    z = A.z
     z_abs_sq = z.real**2 + z.imag**2
 
     diag_val = jnp.sum(z_abs_sq[..., 0, :])
 
-    if A.input_signal.shape[-2] % 2 == 0:
+    if A.output_grid_shape[-1] % 2 == 0:
         diag_val += 4 * jnp.sum(z_abs_sq[..., 1:-1, :])
         diag_val += jnp.sum(z_abs_sq[..., -1, :])
     else:
