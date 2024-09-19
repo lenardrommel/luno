@@ -5,7 +5,7 @@ import numpy as np
 
 from pytest_cases import AUTO, fixture, parametrize
 
-from nola.linops.fno import FixedInputSpectralConvolution
+from nola.models.fno import FixedInputSpectralConvolution
 
 
 @fixture(scope="module")

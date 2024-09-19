@@ -16,10 +16,10 @@ def parametric_gp() -> nola.randprocs.ParametricGaussianProcess:
     z = nola.models.fno.dft.rfftn(input_signal, axes=(-2,), norm="forward")
 
     def feature_fns(x):
-        return nola.linops.fno.FixedInputSpectralConvolution(
+        return nola.models.fno.FixedInputSpectralConvolution(
             z,
             x.shape[:-1],
-        )  # TODO: This is a bit of a hack...
+        )
 
     weight_dim = feature_fns(jnp.zeros((1, 1))).shape[-1]
 
