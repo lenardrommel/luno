@@ -152,11 +152,16 @@ def _(AAT: CongruenceTransform_FixedInputSpectralConvolution_Identity) -> jax.Ar
 
     diag_val = jnp.sum(z_abs_sq[..., 0, :])
 
-    if A.output_grid_shape[-1] % 2 == 0:
-        diag_val += 4 * jnp.sum(z_abs_sq[..., 1:-1, :])
-        diag_val += jnp.sum(z_abs_sq[..., -1, :])
+    if any(m_out < m_in for m_out, m_in in zip(A.output_grid_shape[:-1], z.shape[:-2])):
+        raise NotImplementedError()
+
+    m = A.output_grid_shape[-1] // 2 + 1
+
+    if A.output_grid_shape[-1] % 2 == 0 and m <= z.shape[-2]:
+        diag_val += 4 * jnp.sum(z_abs_sq[..., 1 : min(m, z.shape[-2]) - 1, :])
+        diag_val += jnp.sum(z_abs_sq[..., m - 1, :])
     else:
-        diag_val += 4 * jnp.sum(z_abs_sq[..., 1:, :])
+        diag_val += 4 * jnp.sum(z_abs_sq[..., 1 : min(m, z.shape[-2]), :])
 
     return jnp.full(
         AAT.shape[0],

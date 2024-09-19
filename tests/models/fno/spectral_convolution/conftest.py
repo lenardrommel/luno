@@ -31,10 +31,10 @@ class FixtureParameters(NamedTuple):
     "params",
     [
         FixtureParameters(
-            grid_shape_in=(32, 16),
+            grid_shape_in=(16, 16),
             num_channels_in=4,
-            num_modes=(32, 16),
-            grid_shape_out=(32, 16),
+            num_modes=(16, 16),
+            grid_shape_out=(32, 32),
             num_channels_out=4,
         )
     ],
