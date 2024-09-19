@@ -13,10 +13,11 @@ def parametric_gp() -> nola.randprocs.ParametricGaussianProcess:
     key, subkey = jax.random.split(jax.random.PRNGKey(10657))
 
     input_signal = jax.random.normal(subkey, (5, 2))
+    z = nola.models.fno.dft.rfftn(input_signal, axes=(-2,), norm="forward")
 
     def feature_fns(x):
         return nola.linops.fno.FixedInputSpectralConvolution(
-            input_signal,
+            z,
             x.shape[:-1],
         )  # TODO: This is a bit of a hack...
 
