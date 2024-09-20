@@ -7,9 +7,10 @@ from nola.models.fno import spectral_convolution
 def test_spectral_convolution(
     v_in: jax.Array,
     R: jax.Array,
+    grid_shape_out: tuple[int, ...],
     v_out_ref: jax.Array,
 ):
-    v_out = spectral_convolution(v_in, R)
+    v_out, _ = spectral_convolution(v_in, R, grid_shape_out=grid_shape_out)
 
     np.testing.assert_allclose(
         v_out,
