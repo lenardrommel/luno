@@ -8,7 +8,7 @@ from .._pointwise_jvp import PointwiseJVP
 from ._fixed_input_fno_block import FixedInputFNOBlock
 
 
-class FixedInputFNOHead(ProductLinearOperator):
+class LastFNOBlockWeightJacobian(ProductLinearOperator):
     def __init__(
         self,
         v_in: ArrayLike,
