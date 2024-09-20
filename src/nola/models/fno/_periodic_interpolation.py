@@ -8,7 +8,7 @@ import linox
 from jax.typing import DTypeLike
 
 
-class GeneralizedLinearRegression(linox.LinearOperator):
+class PeriodicGeneralizedLinearInterpolationOperator(linox.LinearOperator):
     def __init__(
         self,
         input_grid_shape: tuple[int, ...],

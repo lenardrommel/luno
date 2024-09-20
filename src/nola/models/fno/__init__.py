@@ -8,4 +8,5 @@ from ._fixed_input_spectral_convolution import (
 )
 from ._fno_block import fno_block
 from ._last_fno_block_weight_jacobian import LastFNOBlockWeightJacobian
+from ._periodic_interpolation import PeriodicGeneralizedLinearInterpolationOperator
 from ._spectral_convolution import spectral_convolution
