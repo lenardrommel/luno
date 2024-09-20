@@ -27,29 +27,34 @@ class FixedInputPointwiseAffineTransform(linox.LinearOperator):
         :math:`(N_1, \ldots, N_D, C)`.
     """
 
-    def __init__(self, v_in: ArrayLike) -> None:
+    def __init__(self, v_in: ArrayLike, num_output_channels: int | None = None) -> None:
         if jnp.ndim(v_in) < 2:
             raise ValueError("`v_in` must have at least 2 dimensions.")
 
         self._v_in = jnp.asarray(v_in)
 
         self._grid_shape = self._v_in.shape[:-1]
-        self._C = self._v_in.shape[-1]
+        self._C_in = self._v_in.shape[-1]
+        self._C_out = (
+            num_output_channels if num_output_channels is not None else self._C_in
+        )
 
         self._N = functools.reduce(operator.mul, self._grid_shape, 1)
 
         super().__init__(
-            shape=(self._N * self._C, self._C * self._C + self._C),
+            shape=(self._N * self._C_out, self._C_out * self._C_in + self._C_out),
             dtype=self._v_in.dtype,
         )
 
-    def _matmul(self, Wb: jax.Array) -> jax.Array:
-        batch_shape = Wb.shape[:-2]
-        ncols = Wb.shape[-1]
+    def _matmul(self, W_and_b: jax.Array) -> jax.Array:
+        batch_shape = W_and_b.shape[:-2]
+        ncols = W_and_b.shape[-1]
 
-        W = Wb[..., : -self._C, :].reshape(*batch_shape, self._C, self._C, ncols)
-        b = Wb[..., -self._C :, :].reshape(*batch_shape, self._C, ncols)
+        W = W_and_b[..., : -self._C_out, :].reshape(
+            *batch_shape, self._C_out, self._C_in, ncols
+        )
+        b = W_and_b[..., -self._C_out :, :].reshape(*batch_shape, self._C_out, ncols)
 
         v_out = jnp.einsum("...ijk,...j->...ik", W, self._v_in) + b
 
-        return v_out.reshape(*batch_shape, self._N * self._C, ncols)
+        return v_out.reshape(*batch_shape, self._N * self._C_out, ncols)
