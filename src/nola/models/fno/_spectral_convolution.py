@@ -16,11 +16,11 @@ def spectral_convolution(
 
     Parameters
     ----------
-    v_in : ArrayLike
+    v_in :
         Real input of shape `(N_1, N_2, ..., N_D, C_in)`.
-    R : ArrayLike
+    R :
         Complex spectral weight tensor of shape `(M_1, ..., M_D, C_out, C_in)`.
-    grid_shape_out : tuple[int] | None
+    grid_shape_out :
         Shape of the output grid. By default, the output grid will match the input grid.
 
     Returns
