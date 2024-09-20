@@ -2,7 +2,7 @@ import linox
 
 from jax.typing import ArrayLike
 
-from .._fixed_input_pointwise_affine import FixedInputPointwiseAffineTransform
+from .._fixed_input_pointwise_linear import FixedInputPointwiseLinearTransform
 from ._fixed_input_spectral_convolution import FixedInputSpectralConvolution
 
 
@@ -20,8 +20,8 @@ class FixedInputFNOBlock(linox.BlockMatrix):
             num_output_channels=num_output_channels,
         )
 
-        self._fixed_input_pointwise_affine_transform = (
-            FixedInputPointwiseAffineTransform(
+        self._fixed_input_pointwise_linear_transform = (
+            FixedInputPointwiseLinearTransform(
                 v,
                 num_output_channels=num_output_channels,
             )
@@ -33,7 +33,7 @@ class FixedInputFNOBlock(linox.BlockMatrix):
             [
                 [
                     self._fixed_input_spectral_convolution,
-                    self._fixed_input_pointwise_affine_transform,
+                    self._fixed_input_pointwise_linear_transform,
                 ]
             ]
         )
