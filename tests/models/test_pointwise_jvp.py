@@ -16,7 +16,7 @@ def test_matmul():
 
     Df_x = jax.vmap(jax.jacfwd(f), in_axes=0, out_axes=0)(x)
 
-    linop = nola.linops.PointwiseJVP(f, (3, 5), x)
+    linop = nola.models.PointwiseJVP(f, (3, 5), x)
 
     key, subkey = jax.random.split(key)
     v = jax.random.normal(subkey, (4, 20, 5, 8))
