@@ -37,3 +37,7 @@ class FixedInputFNOBlock(linox.BlockMatrix):
                 ]
             ]
         )
+
+    @property
+    def num_output_channels(self) -> int:
+        return self._fixed_input_spectral_convolution.num_output_channels
