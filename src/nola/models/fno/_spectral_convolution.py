@@ -44,17 +44,17 @@ def spectral_convolution(
     )
 
     # Pointwise multiplication by `R` in frequency domain
-    z_out = (R @ z_in[..., None])[..., 0]
+    Rz_in = (R @ z_in[..., None])[..., 0]
 
     # (Interpolated) inverse real Fourier transform
     if grid_shape_out is None:
         grid_shape_out = grid_shape_in
 
     v_out = dft.irfftn(
-        z_out,
+        Rz_in,
         grid_shape=grid_shape_out,
         axes=tuple(range(-D - 1, -1)),
         norm="forward",
     )
 
-    return v_out
+    return v_out, (z_in, Rz_in)
