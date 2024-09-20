@@ -7,7 +7,7 @@ from jax.typing import ArrayLike, DTypeLike
 from linox.typing import ShapeLike
 
 
-class PointwiseJVP(linox.LinearOperator):
+class PointwiseJacobian(linox.LinearOperator):
     def __init__(
         self,
         f: Callable[[jax.Array], jax.Array],

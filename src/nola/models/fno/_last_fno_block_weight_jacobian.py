@@ -4,7 +4,7 @@ from linox._arithmetic import ProductLinearOperator
 from collections.abc import Callable
 from jax.typing import ArrayLike
 
-from .._pointwise_jvp import PointwiseJVP
+from .._pointwise_jacobian import PointwiseJacobian
 from ._fixed_input_fno_block import FixedInputFNOBlock
 
 
@@ -24,7 +24,7 @@ class LastFNOBlockWeightJacobian(ProductLinearOperator):
             num_output_channels=v_out.shape[-1],
         )
 
-        self._projection_jacobian = PointwiseJVP(
+        self._projection_jacobian = PointwiseJacobian(
             projection,
             Df_shape=(num_output_channels, self._fno_block.num_output_channels),
             x=v_out,
