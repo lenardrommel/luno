@@ -30,6 +30,7 @@ def spectral_convolution(
     """
 
     v_in = jnp.asarray(v_in)
+    R = jnp.asarray(R)
 
     grid_shape_in = v_in.shape[:-1]
     D = len(grid_shape_in)
