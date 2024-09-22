@@ -7,7 +7,7 @@ import pytest
 from pytest_cases import AUTO, fixture, parametrize
 
 import nola
-from nola.models.fno import FixedInputSpectralConvolution
+from nola.jacobians.fno import FixedInputSpectralConvolution
 
 
 @fixture(scope="module")
@@ -26,14 +26,14 @@ def fixed_input_spectral_convolution(
 def test_matmul(
     fixed_input_spectral_convolution: FixedInputSpectralConvolution,
     R: jax.Array,
-    v_out_ref: jax.Array,
+    v_out_sconv_ref: jax.Array,
 ):
     R_real = jnp.stack((R.real, R.imag), axis=0)
-    v_out = fixed_input_spectral_convolution @ R_real.reshape(-1)
+    v_out_sconv = fixed_input_spectral_convolution @ R_real.reshape(-1)
 
     np.testing.assert_allclose(
-        v_out,
-        v_out_ref.reshape(-1),
+        v_out_sconv,
+        v_out_sconv_ref.reshape(-1),
         rtol=1e-6,
         atol=1e-6,
     )
