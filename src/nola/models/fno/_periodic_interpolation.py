@@ -6,6 +6,9 @@ from jax import numpy as jnp
 import linox
 
 from jax.typing import DTypeLike
+from typing import Literal
+
+from . import dft
 
 
 class PeriodicGeneralizedLinearInterpolationOperator(linox.LinearOperator):
@@ -13,7 +16,7 @@ class PeriodicGeneralizedLinearInterpolationOperator(linox.LinearOperator):
         self,
         input_grid_shape: tuple[int, ...],
         output_grid_shape: tuple[int, ...],
-        mode: str = "linear",
+        mode: Literal["linear", "fourier"] | str = "linear",
         dtype: DTypeLike = jnp.float32,
     ) -> None:
         self._input_grid_shape = input_grid_shape
@@ -51,16 +54,32 @@ class PeriodicGeneralizedLinearInterpolationOperator(linox.LinearOperator):
 
         v = v.reshape(*self._input_grid_shape, ncols)
 
-        v = jnp.pad(
-            v,
-            ((0, 1),) * len(self._input_grid_shape) + ((0, 0),),
-            mode="wrap",
-        )
+        if self._mode == "fourier":
+            v_rdft = dft.rfftn(
+                v,
+                axes=tuple(range(len(self._input_grid_shape))),
+                norm="forward",
+            )
 
-        interpolator = jax.scipy.interpolate.RegularGridInterpolator(
-            points=self._input_grids,
-            values=v,
-            method=self._mode,
-        )
+            v_interp = dft.irfftn(
+                v_rdft,
+                grid_shape=self._output_grid_shape,
+                axes=tuple(range(len(self._output_grid_shape))),
+                norm="forward",
+            )
+        else:
+            v_pad = jnp.pad(
+                v,
+                ((0, 1),) * len(self._input_grid_shape) + ((0, 0),),
+                mode="wrap",
+            )
 
-        return interpolator(self._output_grid).reshape(self.shape[0], ncols)
+            interpolator = jax.scipy.interpolate.RegularGridInterpolator(
+                points=self._input_grids,
+                values=v_pad,
+                method=self._mode,
+            )
+
+            v_interp = interpolator(self._output_grid)
+
+        return v_interp.reshape(self.shape[0], ncols)
