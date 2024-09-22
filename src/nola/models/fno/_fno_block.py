@@ -30,7 +30,7 @@ def fno_block(
     if output_grid_shape is not None:
         v_out_pointwise = gridded_fourier_interpolation(
             v_out_pointwise,
-            axes=tuple(len(output_grid_shape)),
+            axes=tuple(range(len(output_grid_shape))),
             output_grid_shape=output_grid_shape,
         )
 
