@@ -9,7 +9,7 @@ from . import dft
 def spectral_convolution(
     v_in: ArrayLike,
     R: ArrayLike,
-    grid_shape_out: tuple[int, ...] | None = None,
+    output_grid_shape: tuple[int, ...] | None = None,
 ) -> jax.Array:
     """Computes the spectral convolution of a real input signal :math:`v_{in}` with the
     complex spectral weight tensor :math:`R`.
@@ -20,13 +20,13 @@ def spectral_convolution(
         Real input of shape `(N_1, N_2, ..., N_D, C_in)`.
     R :
         Complex spectral weight tensor of shape `(M_1, ..., M_D, C_out, C_in)`.
-    grid_shape_out :
+    output_grid_shape :
         Shape of the output grid. By default, the output grid will match the input grid.
 
     Returns
     -------
     v_out :
-        Real output of shape `grid_shape_out + (C_out,)`.
+        Real output of shape `output_grid_shape + (C_out,)`.
     """
 
     v_in = jnp.asarray(v_in)
@@ -47,14 +47,14 @@ def spectral_convolution(
     Rz_in = (R @ z_in[..., None])[..., 0]
 
     # (Interpolated) inverse real Fourier transform
-    if grid_shape_out is None:
-        grid_shape_out = grid_shape_in
+    if output_grid_shape is None:
+        output_grid_shape = grid_shape_in
 
     v_out = dft.irfftn(
         Rz_in,
-        grid_shape=grid_shape_out,
+        grid_shape=output_grid_shape,
         axes=tuple(range(-D - 1, -1)),
         norm="forward",
     )
 
-    return v_out, (z_in, Rz_in)
+    return v_out
