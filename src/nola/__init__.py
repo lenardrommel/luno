@@ -1,6 +1,6 @@
 # isort: off
 from . import (
-    linops,
+    _linox,
     randprocs,
     models,
     jacobians,
