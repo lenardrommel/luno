@@ -40,8 +40,7 @@ def test_sample_fn(parametric_gp: nola.randprocs.ParametricGaussianProcess):
     xs = jnp.linspace(0.0, 1.0, 100)[:, None]
 
     samples_xs = samples(xs)
-    mean_xs = parametric_gp.mean(xs)
-    std_xs = parametric_gp.std(xs)
+    mean_xs, std_xs = parametric_gp.mean_and_std(xs)
 
     assert_samples_marginally_gaussian(samples_xs, mean_xs, std_xs)
 
@@ -52,8 +51,7 @@ def test_sample(parametric_gp: nola.randprocs.ParametricGaussianProcess):
 
     samples_xs = parametric_gp.sample(key, xs, size=(1000,))
 
-    mean_xs = parametric_gp.mean(xs)
-    std_xs = parametric_gp.std(xs)
+    mean_xs, std_xs = parametric_gp.mean_and_std(xs)
 
     assert_samples_marginally_gaussian(samples_xs, mean_xs, std_xs)
 
