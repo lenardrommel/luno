@@ -1,6 +1,11 @@
 import jax
 import linox
-from linox._arithmetic import CongruenceTransform
+from linox._arithmetic import CongruenceTransform, ScaledLinearOperator
+
+########################################################################################
+# Congruence Transforms ################################################################
+########################################################################################
+
 
 #################################################
 # (LinearOperator, IsotropicScalingPlusLowRank) #
@@ -30,3 +35,16 @@ def _(A: CongruenceTransform_LinearOperator_IsotropicScalingPlusLowRank) -> jax.
         linox.diagonal(linox.congruence_transform(A.A, summand))
         for summand in B_summands
     )
+
+
+##########################################
+# (LinearOperator, ScaledLinearOperator) #
+##########################################
+
+
+@linox.congruence_transform.dispatch
+def _(
+    A: linox.LinearOperator,
+    B: ScaledLinearOperator,
+) -> ScaledLinearOperator:
+    return B.scalar * linox.congruence_transform(A, B.operator)
