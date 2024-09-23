@@ -1,6 +1,13 @@
 import jax
+from jax import numpy as jnp
 import linox
 from linox._arithmetic import CongruenceTransform, ScaledLinearOperator
+
+
+@linox.diagonal.dispatch
+def _(A: linox.SymmetricLowRank) -> jax.Array:
+    return jnp.sum(A.U**2 * A.S, axis=-1)
+
 
 ########################################################################################
 # Congruence Transforms ################################################################
@@ -47,3 +54,13 @@ def _(
     B: ScaledLinearOperator,
 ) -> ScaledLinearOperator:
     return B.scalar * linox.congruence_transform(A, B.operator)
+
+
+######################################
+# (LinearOperator, SymmetricLowRank) #
+######################################
+
+
+@linox.congruence_transform.dispatch
+def _(A: linox.LinearOperator, B: linox.SymmetricLowRank) -> linox.SymmetricLowRank:
+    return linox.SymmetricLowRank(A @ B.U, B.S)
