@@ -6,14 +6,17 @@ from jax.typing import ArrayLike
 
 
 # TODO: This is a Kronecker product v (x) I_{C_{out}}
-class FixedInputPointwiseLinearTransform(linox.LinearOperator):
-    r"""Linear operator representation of a pointwise linear transformation as a
-    function of the weight matrix :math:`W` with fixed input :math:`v`.
+class PointwiseLinearWeightJacobian(linox.LinearOperator):
+    r"""Jacobian of a pointwise linear layer (a 1x1 convolution) with respect to its
+    weight matrix :math:`W`.
+
+    Since the layer is linear in its weights, the Jacobian only depends on the layer
+    input :math:`v`.
 
     This linear operator implements the operation
 
     .. math::
-        W \mapsto (W v_{n:})_{n = 1}^N.
+        vec(W) \mapsto vec((W v_{n:})_{n = 1}^N).
 
     Parameters
     ----------

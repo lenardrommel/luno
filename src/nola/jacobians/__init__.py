@@ -1,3 +1,3 @@
 from . import fno
-from ._fixed_input_pointwise_linear import FixedInputPointwiseLinearTransform
 from ._pointwise_jacobian import PointwiseJacobian
+from ._pointwise_linear_weight_jacobian import PointwiseLinearWeightJacobian
