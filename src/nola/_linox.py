@@ -7,12 +7,12 @@ from linox._arithmetic import CongruenceTransform, ScaledLinearOperator
 ########################################################################################
 
 
-#################################################
-# (LinearOperator, IsotropicScalingPlusLowRank) #
-#################################################
+##########################################################
+# (LinearOperator, IsotropicScalingPlusSymmetricLowRank) #
+##########################################################
 
 
-class CongruenceTransform_LinearOperator_IsotropicScalingPlusLowRank(
+class CongruenceTransform_LinearOperator_IsotropicScalingPlusSymmetricLowRank(
     CongruenceTransform
 ):
     pass
@@ -21,19 +21,18 @@ class CongruenceTransform_LinearOperator_IsotropicScalingPlusLowRank(
 @linox.congruence_transform.dispatch
 def _(
     A: linox.LinearOperator,
-    B: linox.IsotropicScalingPlusLowRank,
-) -> CongruenceTransform_LinearOperator_IsotropicScalingPlusLowRank:
-    return CongruenceTransform_LinearOperator_IsotropicScalingPlusLowRank(A, B)
+    B: linox.IsotropicScalingPlusSymmetricLowRank,
+) -> CongruenceTransform_LinearOperator_IsotropicScalingPlusSymmetricLowRank:
+    return CongruenceTransform_LinearOperator_IsotropicScalingPlusSymmetricLowRank(A, B)
 
 
 @linox.diagonal.dispatch
-def _(A: CongruenceTransform_LinearOperator_IsotropicScalingPlusLowRank) -> jax.Array:
-    # TODO: IsotropicScalingPlusLowRank should inherit from AddLinearOperator
-    B_summands = (linox.Scalar(A.B.scalar), linox.LowRank(A.B.U, A.B.S))
-
+def _(
+    A: CongruenceTransform_LinearOperator_IsotropicScalingPlusSymmetricLowRank,
+) -> jax.Array:
     return sum(
         linox.diagonal(linox.congruence_transform(A.A, summand))
-        for summand in B_summands
+        for summand in A.B.operator_list
     )
 
 

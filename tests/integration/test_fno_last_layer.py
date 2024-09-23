@@ -24,8 +24,8 @@ class Case:
     rank: InitVar[int]
 
     mean: jax.Array = field(init=False)
-    prec: linox.IsotropicScalingPlusLowRank = field(init=False)
-    cov: linox.IsotropicScalingPlusLowRank = field(init=False)
+    prec: linox.IsotropicScalingPlusSymmetricLowRank = field(init=False)
+    cov: linox.IsotropicScalingPlusSymmetricLowRank = field(init=False)
 
     @functools.cached_property
     def modes_shape(self) -> tuple[int, ...]:
@@ -69,8 +69,8 @@ class Case:
         # Sample random precision updates
         key, subkey = jax.random.split(key)
         prec_dd = jax.random.normal(subkey, shape=(_R_size + _W_size, rank))
-        prec_dd_U, prec_dd_S, _ = jnp.linalg.svd(prec_dd)
-        self.prec = linox.IsotropicScalingPlusLowRank(
+        prec_dd_U, prec_dd_S, _ = jnp.linalg.svd(prec_dd, full_matrices=False)
+        self.prec = linox.IsotropicScalingPlusSymmetricLowRank(
             prior_prec,
             prec_dd_U,
             prec_dd_S,
