@@ -14,7 +14,7 @@ def test_identity_weight_matrix_reproduces_input():
     key, subkey = jax.random.split(key)
     v_in = jax.random.normal(subkey, (N, C))
 
-    linop = nola.models.FixedInputPointwiseLinearTransform(v_in)
+    linop = nola.jacobians.FixedInputPointwiseLinearTransform(v_in)
 
     W = jnp.eye(C).reshape(-1)
 

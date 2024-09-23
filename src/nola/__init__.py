@@ -3,6 +3,7 @@ from . import (
     linops,
     randprocs,
     models,
+    jacobians,
 )
 
 # isort: on
