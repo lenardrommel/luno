@@ -3,6 +3,5 @@
 -r linting-requirements.txt
 
 -e ./deps/linox
--e ./deps/laplax
 
 -e .

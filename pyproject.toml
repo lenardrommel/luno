@@ -30,7 +30,6 @@ dependencies = [
     "numpy>=1.21.2",
     "jax",
     "linox",
-    "laplax",
 ]
 dynamic = [
     "version",

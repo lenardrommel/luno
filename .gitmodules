@@ -1,6 +1,3 @@
 [submodule "deps/linox"]
 	path = deps/linox
 	url = git@github.com:2bys/linox.git
-[submodule "deps/laplax"]
-	path = deps/laplax
-	url = https://github.com/2bys/laplax.git
