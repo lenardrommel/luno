@@ -1,6 +1,7 @@
 import jax
 from jax import numpy as jnp
 
+from collections.abc import Mapping
 from jax.typing import ArrayLike
 
 from .._pointwise_linear import pointwise_linear
@@ -14,8 +15,8 @@ def fno_block(
     W: ArrayLike,
     b: ArrayLike | None = None,
     output_grid_shape: tuple[int, ...] | None = None,
-) -> jax.Array:
-    v_out = spectral_convolution(
+) -> tuple[jax.Array, Mapping[str, jax.Array]]:
+    v_out, intermediates_sconv = spectral_convolution(
         v_in,
         R,
         output_grid_shape=output_grid_shape,
@@ -36,4 +37,4 @@ def fno_block(
 
     v_out += v_out_pointwise
 
-    return v_out
+    return v_out, {"spectral_convolution": intermediates_sconv}

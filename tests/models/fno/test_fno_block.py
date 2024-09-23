@@ -33,7 +33,7 @@ def test_fno_block(
     grid_shape_out: tuple[int, ...],
     v_out_ref: jax.Array,
 ):
-    v_out = fno_block(v_in, R, W, b, output_grid_shape=grid_shape_out)
+    v_out, _ = fno_block(v_in, R, W, b, output_grid_shape=grid_shape_out)
 
     np.testing.assert_allclose(
         v_out,

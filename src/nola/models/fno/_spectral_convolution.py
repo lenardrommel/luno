@@ -1,6 +1,7 @@
 import jax
 from jax import numpy as jnp
 
+from collections.abc import Mapping
 from jax.typing import ArrayLike
 
 from . import dft
@@ -10,7 +11,7 @@ def spectral_convolution(
     v_in: ArrayLike,
     R: ArrayLike,
     output_grid_shape: tuple[int, ...] | None = None,
-) -> jax.Array:
+) -> tuple[jax.Array, Mapping[str, jax.Array]]:
     """Computes the spectral convolution of a real input signal :math:`v_{in}` with the
     complex spectral weight tensor :math:`R`.
 
@@ -27,6 +28,9 @@ def spectral_convolution(
     -------
     v_out :
         Real output of shape `output_grid_shape + (C_out,)`.
+    intermediates :
+        Dictionary containing the intermediate values `z_in` and `Rz_in`.
+        Its contents and keys may be subject to change.
     """
 
     v_in = jnp.asarray(v_in)
@@ -57,4 +61,4 @@ def spectral_convolution(
         norm="forward",
     )
 
-    return v_out
+    return v_out, {"z_in": z_in, "Rz_in": Rz_in}
