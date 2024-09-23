@@ -12,26 +12,31 @@ from jax.typing import ArrayLike
 from linox.typing import ShapeLike
 
 
-class FixedInputSpectralConvolution(linox.LinearOperator):
-    r"""Linear operator representation of the spectral convolution in an FNO block as a
-    function of the spectral weight tensor :math:`R` with fixed input signal :math:`v`.
+class SpectralConvolutionWeightJacobian(linox.LinearOperator):
+    r"""Jacobian of a spectral convolution with respect to its weights :math:`R`.
 
-    This linear operator assumes that
+    Since the spectral convolution is linear in its weights, the Jacobian only depends
+    on the input signal :math:`v`.
+
+    To represent the Jacobian as a real matrix, we represent the spectral weights
+    :math:`R` as a real tensor
 
     .. math::
-        R \in \R^{2 \times M_1 \dotsb \times M_D \times C_{out} \times C_{in}}`
+        R \in \R^{2 \times M_1 \dotsb \times M_D \times C_{out} \times C_{in}},
 
-    contains the real and imaginary parts of the spectral weights along the first index.
+    containing the real and imaginary parts of the complex spectral weights along the
+    first index.
     This linear operator implements the operation
 
     .. math::
-        R \mapsto \left(
+        vec(R) \mapsto \left(
             \operatorname{rfft}^{-1} \left(
                 \sum_{c = 1}^{C_{in}} (R_{0mc'c} + i R_{1mc'c}) z_{mc}
             \right)_{m = (1, \dotsc, 1)}^{(M_1, \dotsc, M_D)}
         \right)_{c' = 1}^{C_{out}},
 
-    where :math:`z \in \C^{M_1 \times \dotsb \times M_D \times C}`.
+    where :math:`z \in \C^{M_1 \times \dotsb \times M_D \times C}` is the (truncated)
+    real discrete Fourier transform of the input signal :math:`v`.
 
     Parameters
     ----------
@@ -127,24 +132,26 @@ class FixedInputSpectralConvolution(linox.LinearOperator):
 ########################################################################################
 
 
-#############################################
-# (FixedInputSpectralConvolution, Identity) #
-#############################################
+#################################################
+# (SpectralConvolutionWeightJacobian, Identity) #
+#################################################
 
 
-class CongruenceTransform_FixedInputSpectralConvolution_Identity(CongruenceTransform):
+class CongruenceTransform_SpectralConvolutionWeightJacobian_Identity(
+    CongruenceTransform
+):
     pass
 
 
 @linox.congruence_transform.dispatch
 def _(
-    A: FixedInputSpectralConvolution, B: linox.Identity
-) -> CongruenceTransform_FixedInputSpectralConvolution_Identity:
-    return CongruenceTransform_FixedInputSpectralConvolution_Identity(A, B)
+    A: SpectralConvolutionWeightJacobian, B: linox.Identity
+) -> CongruenceTransform_SpectralConvolutionWeightJacobian_Identity:
+    return CongruenceTransform_SpectralConvolutionWeightJacobian_Identity(A, B)
 
 
 @linox.diagonal.dispatch
-def _(AAT: CongruenceTransform_FixedInputSpectralConvolution_Identity) -> jax.Array:
+def _(AAT: CongruenceTransform_SpectralConvolutionWeightJacobian_Identity) -> jax.Array:
     A = AAT._A
 
     z = A.z
@@ -170,14 +177,16 @@ def _(AAT: CongruenceTransform_FixedInputSpectralConvolution_Identity) -> jax.Ar
     )
 
 
-###########################################
-# (FixedInputSpectralConvolution, Scalar) #
-###########################################
+###############################################
+# (SpectralConvolutionWeightJacobian, Scalar) #
+###############################################
 
 
 @linox.congruence_transform.dispatch
 def _(
-    A: FixedInputSpectralConvolution,
+    A: SpectralConvolutionWeightJacobian,
     B: linox.Scalar,
 ):
-    return B.scalar * CongruenceTransform_FixedInputSpectralConvolution_Identity(A, B)
+    return B.scalar * CongruenceTransform_SpectralConvolutionWeightJacobian_Identity(
+        A, B
+    )

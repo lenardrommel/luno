@@ -7,7 +7,7 @@ import pytest
 from pytest_cases import AUTO, fixture, parametrize
 
 import nola
-from nola.jacobians.fno import FixedInputSpectralConvolution
+from nola.jacobians.fno import SpectralConvolutionWeightJacobian
 
 
 @fixture(scope="module")
@@ -15,8 +15,8 @@ def fixed_input_spectral_convolution(
     grid_shape_out: tuple[int, ...],
     num_channels_out: int,
     z_in: jax.Array,
-) -> FixedInputSpectralConvolution:
-    return FixedInputSpectralConvolution(
+) -> SpectralConvolutionWeightJacobian:
+    return SpectralConvolutionWeightJacobian(
         z_in,
         output_grid_shape=grid_shape_out,
         num_output_channels=num_channels_out,
@@ -24,7 +24,7 @@ def fixed_input_spectral_convolution(
 
 
 def test_matmul(
-    fixed_input_spectral_convolution: FixedInputSpectralConvolution,
+    fixed_input_spectral_convolution: SpectralConvolutionWeightJacobian,
     R: jax.Array,
     v_out_sconv_ref: jax.Array,
 ):
@@ -42,7 +42,7 @@ def test_matmul(
 @parametrize("batch_shape", ((), (3,), (2, 3)), idgen=AUTO)
 @parametrize("ncols", (1, 2, 3))
 def test_matmul_batching(
-    fixed_input_spectral_convolution: FixedInputSpectralConvolution,
+    fixed_input_spectral_convolution: SpectralConvolutionWeightJacobian,
     batch_shape: tuple[int, ...],
     ncols: int,
 ):
@@ -77,7 +77,7 @@ def test_matmul_identity_weight_reproduces_resampled_input(
     num_channels_out: int,
     R: jax.Array,
     z_in: jax.Array,
-    fixed_input_spectral_convolution: FixedInputSpectralConvolution,
+    fixed_input_spectral_convolution: SpectralConvolutionWeightJacobian,
 ):
     if num_channels_in != num_channels_out:
         pytest.skip()
@@ -107,7 +107,7 @@ def test_matmul_identity_weight_reproduces_resampled_input(
 
 
 def test_outer_product_diagonal(
-    fixed_input_spectral_convolution: FixedInputSpectralConvolution,
+    fixed_input_spectral_convolution: SpectralConvolutionWeightJacobian,
 ):
     A = fixed_input_spectral_convolution
 

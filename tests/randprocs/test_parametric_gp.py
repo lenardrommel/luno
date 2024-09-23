@@ -16,7 +16,7 @@ def parametric_gp() -> nola.randprocs.ParametricGaussianProcess:
     z = nola.models.fno.dft.rfftn(input_signal, axes=(-2,), norm="forward")
 
     def feature_fns(x):
-        return nola.jacobians.fno.FixedInputSpectralConvolution(
+        return nola.jacobians.fno.SpectralConvolutionWeightJacobian(
             z,
             x.shape[:-1],
         )
