@@ -38,8 +38,8 @@ def _(
     A: CongruenceTransform_LinearOperator_IsotropicScalingPlusSymmetricLowRank,
 ) -> jax.Array:
     return sum(
-        linox.diagonal(linox.congruence_transform(A.A, summand))
-        for summand in A.B.operator_list
+        linox.diagonal(linox.congruence_transform(A._A, summand))
+        for summand in A._B.operator_list
     )
 
 
