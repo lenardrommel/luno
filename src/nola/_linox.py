@@ -9,6 +9,11 @@ def _(A: linox.SymmetricLowRank) -> jax.Array:
     return jnp.sum(A.U**2 * A.S, axis=-1)
 
 
+@linox.diagonal.dispatch
+def _(A: ScaledLinearOperator) -> jax.Array:
+    return A.scalar * linox.diagonal(A.operator)
+
+
 ########################################################################################
 # Congruence Transforms ################################################################
 ########################################################################################
