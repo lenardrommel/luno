@@ -1,96 +1,110 @@
-from dataclasses import InitVar, dataclass, field
-import functools
-import operator
-
 import jax
 from jax import numpy as jnp
 import linox
+import numpy as np
 
-from pytest_cases import fixture, parametrize
+from pytest_cases import fixture
 
+import nola
 
-@dataclass
-class Case:
-    key: InitVar[jax.Array]
-
-    num_channels: int
-    spatial_grid_shape: tuple[int, ...]
-
-    num_outputs: int
-
-    prior_prec: InitVar[float]
-    rank: InitVar[int]
-
-    mean: jax.Array = field(init=False)
-    prec: linox.IsotropicScalingPlusSymmetricLowRank = field(init=False)
-    cov: linox.IsotropicScalingPlusSymmetricLowRank = field(init=False)
-
-    @functools.cached_property
-    def modes_shape(self) -> tuple[int, ...]:
-        dummy_signal = jnp.zeros(self.spatial_grid_shape)
-        return jnp.fft.rfftn(
-            dummy_signal,
-            axes=tuple(range(len(self.spatial_grid_shape))),
-        ).shape
-
-    @functools.cached_property
-    def R(self) -> jax.Array:
-        R_real = self.mean[: -self.W.size].reshape(
-            2,
-            self.num_channels,
-            *self.modes_shape,
-            self.num_channels,
-        )
-
-        return R_real[0, ...] + 1j * R_real[1, ...]
-
-    @functools.cached_property
-    def W(self) -> jax.Array:
-        return self.mean[-self.num_channels * self.num_channels :].reshape(
-            self.num_channels,
-            self.num_channels,
-        )
-
-    def __post_init__(self, key: jax.Array, prior_prec: float, rank: int) -> None:
-        _R_size = (
-            2
-            * self.num_channels
-            * functools.reduce(operator.mul, self.modes_shape, 1)
-            * self.num_channels
-        )
-        _W_size = self.num_channels * self.num_channels
-
-        # Sample random mean
-        key, subkey = jax.random.split(key)
-        self.mean = jax.random.normal(subkey, shape=(_R_size + _W_size,))
-
-        # Sample random precision updates
-        key, subkey = jax.random.split(key)
-        prec_dd = jax.random.normal(subkey, shape=(_R_size + _W_size, rank))
-        prec_dd_U, prec_dd_S, _ = jnp.linalg.svd(prec_dd, full_matrices=False)
-        self.prec = linox.IsotropicScalingPlusSymmetricLowRank(
-            prior_prec,
-            prec_dd_U,
-            prec_dd_S,
-        )
-
-        # Compute corresponding covariance matrix
-        self.cov = linox.linverse(self.prec)
+from collections.abc import Callable
 
 
-@fixture(scope="module")
-@parametrize(
-    "case",
-    (
-        Case(
-            key=jax.random.key(425786),
-            num_channels=2,
-            spatial_grid_shape=(10,),
-            num_outputs=1,
-            prior_prec=1.0,
-            rank=10,
-        ),
-    ),
-)
-def case(case: Case) -> Case:
-    return case
+@fixture(scope="session")
+def prior_prec() -> float:
+    return 0.42
+
+
+@fixture(scope="session")
+def rank() -> int:
+    return 10
+
+
+@fixture(scope="session")
+def weight_cov(
+    R: jax.Array,
+    W: jax.Array,
+    b: jax.Array,
+    prior_prec: float,
+    rank: int,
+) -> linox.IsotropicScalingPlusSymmetricLowRank:
+    key = jax.random.key(65789)
+    U, S, _ = jnp.linalg.svd(
+        jax.random.normal(key, shape=(2 * R.size + W.size + b.size, rank)),
+        full_matrices=False,
+    )
+
+    return linox.IsotropicScalingPlusSymmetricLowRank(prior_prec, U, S)
+
+
+@fixture(scope="session")
+def projection(num_channels_out: int) -> Callable[[jax.Array], jax.Array]:
+    key = jax.random.key(3245)
+
+    key, subkey = jax.random.split(key)
+    W1 = jax.random.normal(key, shape=(num_channels_out, num_channels_out))
+    W2 = jax.random.normal(subkey, shape=(2, num_channels_out))
+
+    def Q(x: jax.Array) -> jax.Array:
+        return (W2 @ jnp.tanh(W1 @ x[..., None]))[..., 0]
+
+    return Q
+
+
+@fixture(scope="session")
+def fnola_last_layer(
+    R: jax.Array,
+    W: jax.Array,
+    b: jax.Array,
+    weight_cov: linox.IsotropicScalingPlusSymmetricLowRank,
+    projection: Callable[[jax.Array], jax.Array],
+) -> nola.FNOLALastLayer:
+    return nola.FNOLALastLayer(
+        fno_head=lambda x: x,
+        R=R,
+        W=W,
+        b=b,
+        weight_cov=weight_cov,
+        projection=projection,
+        num_output_channels=2,
+    )
+
+
+def test_sample(
+    fnola_last_layer: nola.FNOLALastLayer,
+    v_in: jax.Array,
+    grid_shape_out: tuple[int, ...],
+):
+    parametric_gp = fnola_last_layer(v_in)
+
+    xs = nola.models.fno.FFTGrid(grid_shape_out)
+
+    key = jax.random.key(34890)
+    samples_xs = parametric_gp.sample(key, xs, size=(2000,))
+
+    mean_xs, std_xs = parametric_gp.mean_and_std(xs)
+
+    assert_samples_marginally_gaussian(samples_xs, mean_xs, std_xs)
+
+
+def assert_samples_marginally_gaussian(
+    samples: jax.Array,
+    mean: jax.Array,
+    std: jax.Array,
+    axis: int = 0,
+):
+    samples = jnp.sort(samples, axis=axis)
+
+    samples_standardized = (
+        samples - jnp.expand_dims(mean, axis=axis)
+    ) / jnp.expand_dims(std, axis=axis)
+
+    # Map standardized samples through standard normal cdf and compare to uniform cdf
+    samples_norm_cdf = jax.scipy.stats.norm.cdf(samples_standardized)
+    uniform_cdf = jnp.linspace(0.0, 1.0, samples_norm_cdf.shape[axis])
+
+    np.testing.assert_allclose(
+        np.moveaxis(samples_norm_cdf, axis, -1) - uniform_cdf,
+        0.0,
+        atol=6e-2,
+    )
