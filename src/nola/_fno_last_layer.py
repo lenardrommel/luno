@@ -105,4 +105,4 @@ class FNOLALastLayer:
                 v_out_0=v_out,
             )
 
-            return u, features
+            return u.reshape(-1), features
