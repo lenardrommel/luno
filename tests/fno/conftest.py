@@ -48,7 +48,7 @@ def _neuralop_fno_block(
 
     return neuralop.layers.fno_block.FNOBlocks(
         in_channels=_case.num_channels_in,
-        out_channels=_case.num_channels_hidden,
+        out_channels=_case.num_channels_out,
         n_modes=_case.num_modes,
         output_scaling_factor=None,
         n_layers=1,

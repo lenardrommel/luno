@@ -7,7 +7,6 @@ class Case(NamedTuple):
     grid_shape_in: tuple[int, ...]
     num_channels_in: int
     num_modes: tuple[int, ...]
-    num_channels_hidden: int
     grid_shape_out: tuple[int, ...]
     num_channels_out: int
 
@@ -32,7 +31,6 @@ def case_truncation(grid_shape: tuple[int, ...], num_modes: tuple[int, ...]) -> 
         grid_shape_in=grid_shape,
         num_channels_in=4,
         num_modes=num_modes,
-        num_channels_hidden=4,
         grid_shape_out=grid_shape,
         num_channels_out=2,
     )
@@ -44,7 +42,6 @@ def case_no_truncation(grid_shape: tuple[int, ...]) -> Case:
         grid_shape_in=grid_shape,
         num_channels_in=3,
         num_modes=grid_shape,
-        num_channels_hidden=3,
         grid_shape_out=grid_shape,
         num_channels_out=3,
     )
@@ -68,7 +65,6 @@ def case_interpolation(
         grid_shape_in=grid_shape_in,
         num_channels_in=1,
         num_modes=num_modes,
-        num_channels_hidden=1,
         grid_shape_out=grid_shape_out,
         num_channels_out=5,
     )
