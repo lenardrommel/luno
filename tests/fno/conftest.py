@@ -70,17 +70,6 @@ def _neuralop_spectral_conv(
 ) -> neuralop.layers.spectral_convolution.SpectralConv:
     return _neuralop_fno_block.convs
 
-    # return neuralop.layers.spectral_convolution.SpectralConv(
-    #     in_channels=_case.num_channels_in,
-    #     out_channels=_case.num_channels_out,
-    #     n_modes=_case.num_modes,
-    #     max_n_modes=None,
-    #     bias=False,
-    #     n_layers=1,
-    #     separable=False,
-    #     output_scaling_factor=None,
-    # )
-
 
 @fixture(scope="session")
 def _neuralop_skip_conv(
