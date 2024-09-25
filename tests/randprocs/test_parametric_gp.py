@@ -7,29 +7,38 @@ from tests.utils import assert_samples_marginally_gaussian
 
 import nola
 
+from collections.abc import Callable
+from jax.typing import ArrayLike
 
-@fixture
-def parametric_gp() -> nola.randprocs.ParametricGaussianProcess:
-    key, subkey = jax.random.split(jax.random.PRNGKey(10657))
 
-    input_signal = jax.random.normal(subkey, (5, 2))
-    z = nola.models.fno.dft.rfftn(input_signal, axes=(-2,), norm="forward")
+@fixture(scope="module")
+def num_features() -> int:
+    return 5
 
-    def feature_fns(x):
-        return nola.jacobians.fno.SpectralConvolutionWeightJacobian(
-            z,
-            x.shape[:-1],
-        )
 
-    weight_dim = feature_fns(jnp.zeros((1, 1))).shape[-1]
+@fixture(scope="module")
+def features(num_features: int) -> Callable[[ArrayLike], jax.Array]:
+    def features(x):
+        return linox.Matrix(jnp.asarray(x) ** jnp.arange(num_features))
 
-    weight_mean = jax.random.normal(key, (weight_dim,))
-    weight_cov = linox.Identity(weight_dim)
+    return features
+
+
+@fixture(scope="module")
+def parametric_gp(
+    num_features: int,
+    features: Callable[[ArrayLike], jax.Array],
+) -> nola.randprocs.ParametricGaussianProcess:
+    weight_mean = jax.random.normal(
+        jax.random.key(10657),
+        shape=(num_features,),
+    )
+    weight_cov = linox.Identity(num_features)
 
     return nola.randprocs.ParametricGaussianProcess.from_weights_and_features(
         weight_mean,
         weight_cov,
-        feature_fns,
+        features,
     )
 
 

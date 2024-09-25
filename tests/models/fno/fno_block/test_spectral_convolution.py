@@ -1,19 +1,10 @@
 import jax
 from jax import numpy as jnp
 import neuralop.layers.spectral_convolution
+import numpy as np
 import torch
 
 from pytest_cases import fixture
-
-
-@fixture(scope="session")
-def z_in(_fno_block_out) -> jax.Array:
-    return _fno_block_out[1]["spectral_convolution"]["z_in"]
-
-
-@fixture(scope="session")
-def v_out_sconv(_fno_block_out) -> jax.Array:
-    return _fno_block_out[1]["v_out_sconv"]
 
 
 @fixture(scope="session")
@@ -32,3 +23,15 @@ def v_out_sconv_ref(
     v_out_ref = jnp.moveaxis(v_out_ref, 0, -1)  # shape = (N_1, N_2, ..., N_D, C_out)
 
     return v_out_ref - b
+
+
+def test_spectral_convolution(
+    v_out_sconv: jax.Array,
+    v_out_sconv_ref: jax.Array,
+):
+    np.testing.assert_allclose(
+        v_out_sconv,
+        v_out_sconv_ref,
+        atol=1e-6,
+        rtol=1e-6,
+    )

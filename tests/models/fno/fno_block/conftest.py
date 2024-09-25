@@ -141,6 +141,11 @@ def v_out(_fno_block_out) -> jax.Array:
 
 
 @fixture(scope="session")
+def v_out_sconv(_fno_block_out) -> jax.Array:
+    return _fno_block_out[1]["v_out_sconv"]
+
+
+@fixture(scope="session")
 def v_in_torch(v_in: jax.Array) -> torch.Tensor:
     v_in_torch = torch.as_tensor(np.asarray(v_in))  # shape = (N_1, N_2, ..., N_D, C_in)
     v_in_torch = torch.moveaxis(v_in_torch, -1, 0)  # shape = (C_in, N_1, N_2, ..., N_D)
