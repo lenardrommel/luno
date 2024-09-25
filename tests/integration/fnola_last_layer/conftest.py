@@ -1,8 +1,13 @@
 import jax
 from jax import numpy as jnp
 
-import pytest
-from pytest_cases import AUTO, fixture, parametrize, parametrize_with_cases
+from pytest_cases import (
+    AUTO,
+    fixture,
+    parametrize,
+    parametrize_with_cases,
+    unpack_fixture,
+)
 from tests.models.fno.fno_block.cases import FNOBlockCase
 
 from collections.abc import Callable
@@ -41,14 +46,6 @@ def num_hidden_channels(_fno_block_case: FNOBlockCase) -> tuple[int, ...]:
 @fixture(scope="session")
 def output_grid_shape(_fno_block_case: FNOBlockCase) -> tuple[int, ...]:
     return _fno_block_case.grid_shape_out
-
-
-@fixture(scope="session")
-@parametrize("num_output_channels", [None, 1, 2], idgen=AUTO)
-def num_output_channels(num_output_channels: int, num_hidden_channels: int) -> int:
-    return (
-        num_output_channels if num_output_channels is not None else num_hidden_channels
-    )
 
 
 @fixture(scope="session")
@@ -93,38 +90,44 @@ def b(num_hidden_channels: int) -> jax.Array:
     )
 
 
+@parametrize("num_output_channels", [None, 1, 2], idgen=AUTO)
 def case_projection_mlp(
     num_hidden_channels: int,
-    num_output_channels: int,
+    num_output_channels: int | None,
 ) -> Callable[[jax.Array], jax.Array]:
-    key = jax.random.key(3245)
+    if num_output_channels is None:
+        num_output_channels = num_hidden_channels
 
-    key, subkey = jax.random.split(key)
+    key, subkey = jax.random.split(jax.random.key(3245))
     W1 = jax.random.normal(key, shape=(num_hidden_channels, num_hidden_channels))
     W2 = jax.random.normal(subkey, shape=(num_output_channels, num_hidden_channels))
 
     def Q(x: jax.Array) -> jax.Array:
         return (W2 @ jnp.tanh(W1 @ x[..., None]))[..., 0]
 
-    return Q
+    return Q, num_output_channels
 
 
 def case_projection_identity(
     num_hidden_channels: int,
-    num_output_channels: int,
-) -> Callable[[jax.Array], jax.Array]:
-    pytest.mark.skipif(
-        num_output_channels != num_hidden_channels,
-        reason=(
-            "Identity projection only makes sense if num_output_channels == "
-            "num_hidden_channels."
-        ),
-    )
-
-    return lambda x: x
+) -> tuple[Callable[[jax.Array], jax.Array], int]:
+    return lambda x: x, num_hidden_channels
 
 
 @fixture(scope="session")
-@parametrize_with_cases("Q", cases=".", prefix="case_projection_", scope="session")
-def projection(Q: Callable[[jax.Array], jax.Array]) -> Callable[[jax.Array], jax.Array]:
-    return Q
+@parametrize_with_cases(
+    "projection_and_num_output_channels",
+    cases=".",
+    prefix="case_projection_",
+    scope="session",
+)
+def _projection_and_num_output_channels(
+    projection_and_num_output_channels: tuple[Callable[[jax.Array], jax.Array], int],
+) -> tuple[Callable[[jax.Array], jax.Array], int]:
+    return projection_and_num_output_channels
+
+
+projection, num_output_channels = unpack_fixture(
+    "projection,num_output_channels",
+    _projection_and_num_output_channels,
+)

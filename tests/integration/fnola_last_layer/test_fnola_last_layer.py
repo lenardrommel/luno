@@ -44,6 +44,7 @@ def fnola_last_layer(
     b: jax.Array,
     weight_cov: linox.IsotropicScalingPlusSymmetricLowRank,
     projection: Callable[[jax.Array], jax.Array],
+    num_output_channels: int,
 ) -> nola.FNOLALastLayer:
     return nola.FNOLALastLayer(
         fno_head=lambda x: x,
@@ -52,7 +53,7 @@ def fnola_last_layer(
         b=b,
         weight_cov=weight_cov,
         projection=projection,
-        num_output_channels=2,
+        num_output_channels=num_output_channels,
     )
 
 
