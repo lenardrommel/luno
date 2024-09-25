@@ -1,27 +1,19 @@
 import jax
 from jax import numpy as jnp
 import neuralop.layers.spectral_convolution
-import numpy as np
 import torch
 
 from pytest_cases import fixture
 
-import nola
+
+@fixture(scope="session")
+def z_in(_fno_block_out) -> jax.Array:
+    return _fno_block_out[1]["spectral_convolution"]["z_in"]
 
 
 @fixture(scope="session")
-def modes_shape(R: jax.Array) -> tuple[int, ...]:
-    return R.shape[:-2]
-
-
-@fixture(scope="session")
-def z_in(v_in: jax.Array, modes_shape: tuple[int, ...]) -> jax.Array:
-    return nola.models.fno.dft.rfftn(
-        v_in,
-        modes_shape=modes_shape,
-        axes=tuple(range(len(modes_shape))),
-        norm="forward",
-    )
+def v_out_sconv(_fno_block_out) -> jax.Array:
+    return _fno_block_out[1]["v_out_sconv"]
 
 
 @fixture(scope="session")

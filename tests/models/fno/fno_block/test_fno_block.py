@@ -25,16 +25,7 @@ def v_out_ref(
     return v_out_ref
 
 
-def test_fno_block(
-    v_in: jax.Array,
-    R: jax.Array,
-    W: jax.Array,
-    b: jax.Array,
-    grid_shape_out: tuple[int, ...],
-    v_out_ref: jax.Array,
-):
-    v_out, _ = fno_block(v_in, R, W, b, output_grid_shape=grid_shape_out)
-
+def test_fno_block(v_out: jax.Array, v_out_ref: jax.Array):
     np.testing.assert_allclose(
         v_out,
         v_out_ref,

@@ -26,14 +26,14 @@ def fixed_input_spectral_convolution(
 def test_matmul(
     fixed_input_spectral_convolution: SpectralConvolutionWeightJacobian,
     R: jax.Array,
-    v_out_sconv_ref: jax.Array,
+    v_out_sconv: jax.Array,
 ):
     R_real = jnp.stack((R.real, R.imag), axis=0)
     v_out_sconv = fixed_input_spectral_convolution @ R_real.reshape(-1)
 
     np.testing.assert_allclose(
         v_out_sconv,
-        v_out_sconv_ref.reshape(-1),
+        v_out_sconv.reshape(-1),
         rtol=1e-6,
         atol=1e-6,
     )

@@ -16,7 +16,7 @@ def fno_block(
     b: ArrayLike | None = None,
     output_grid_shape: tuple[int, ...] | None = None,
 ) -> tuple[jax.Array, Mapping[str, jax.Array]]:
-    v_out, intermediates_sconv = spectral_convolution(
+    v_out_sconv, intermediates_sconv = spectral_convolution(
         v_in,
         R,
         output_grid_shape=output_grid_shape,
@@ -35,6 +35,8 @@ def fno_block(
             output_grid_shape=output_grid_shape,
         )
 
-    v_out += v_out_pointwise
-
-    return v_out, {"spectral_convolution": intermediates_sconv}
+    return v_out_sconv + v_out_pointwise, {
+        "v_out_sconv": v_out_sconv,
+        "v_out_pointwise": v_out_pointwise,
+        "spectral_convolution": intermediates_sconv,
+    }

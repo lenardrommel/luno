@@ -1,4 +1,3 @@
-import cases
 import jax
 from jax import numpy as jnp
 import neuralop
@@ -13,36 +12,38 @@ from pytest_cases import fixture, parametrize_with_cases
 
 import nola
 
+from .cases import FNOBlockCase
+
 
 @fixture(scope="session")
-@parametrize_with_cases("params", cases=cases, scope="session")
-def _case(params: cases.Case) -> cases.Case:
+@parametrize_with_cases("params", cases=".cases", scope="session")
+def _case(params: FNOBlockCase) -> FNOBlockCase:
     return params
 
 
 @fixture(scope="session")
-def grid_shape_in(_case: cases.Case) -> tuple[int, ...]:
+def grid_shape_in(_case: FNOBlockCase) -> tuple[int, ...]:
     return _case.grid_shape_in
 
 
 @fixture(scope="session")
-def num_channels_in(_case: cases.Case) -> int:
+def num_channels_in(_case: FNOBlockCase) -> int:
     return _case.num_channels_in
 
 
 @fixture(scope="session")
-def grid_shape_out(_case: cases.Case) -> tuple[int, ...]:
+def grid_shape_out(_case: FNOBlockCase) -> tuple[int, ...]:
     return _case.grid_shape_out
 
 
 @fixture(scope="session")
-def num_channels_out(_case: cases.Case) -> int:
+def num_channels_out(_case: FNOBlockCase) -> int:
     return _case.num_channels_out
 
 
 @fixture(scope="session")
 def _neuralop_fno_block(
-    _case: cases.Case,
+    _case: FNOBlockCase,
 ) -> neuralop.layers.fno_block.FNOBlocks:
     torch.manual_seed(453879)
 
@@ -121,6 +122,22 @@ def v_in(grid_shape_in: tuple[int, ...], num_channels_in: int) -> jax.Array:
         jax.random.key(345786),
         shape=grid_shape_in + (num_channels_in,),
     )
+
+
+@fixture(scope="session")
+def _fno_block_out(
+    v_in: jax.Array,
+    R: jax.Array,
+    W: jax.Array,
+    b: jax.Array,
+    grid_shape_out: tuple[int, ...],
+):
+    return nola.models.fno.fno_block(v_in, R, W, b, output_grid_shape=grid_shape_out)
+
+
+@fixture(scope="session")
+def v_out(_fno_block_out) -> jax.Array:
+    return _fno_block_out[0]
 
 
 @fixture(scope="session")

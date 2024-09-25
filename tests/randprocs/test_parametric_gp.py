@@ -1,9 +1,9 @@
 import jax
 from jax import numpy as jnp
 import linox
-import numpy as np
 
 from pytest_cases import fixture
+from tests.utils import assert_samples_marginally_gaussian
 
 import nola
 
@@ -54,26 +54,3 @@ def test_sample(parametric_gp: nola.randprocs.ParametricGaussianProcess):
     mean_xs, std_xs = parametric_gp.mean_and_std(xs)
 
     assert_samples_marginally_gaussian(samples_xs, mean_xs, std_xs)
-
-
-def assert_samples_marginally_gaussian(
-    samples: jax.Array,
-    mean: jax.Array,
-    std: jax.Array,
-    axis: int = 0,
-):
-    samples = jnp.sort(samples, axis=axis)
-
-    samples_standardized = (
-        samples - jnp.expand_dims(mean, axis=axis)
-    ) / jnp.expand_dims(std, axis=axis)
-
-    # Map standardized samples through standard normal cdf and compare to uniform cdf
-    samples_norm_cdf = jax.scipy.stats.norm.cdf(samples_standardized)
-    uniform_cdf = jnp.linspace(0.0, 1.0, samples_norm_cdf.shape[axis])
-
-    np.testing.assert_allclose(
-        np.moveaxis(samples_norm_cdf, axis, -1) - uniform_cdf,
-        0.0,
-        atol=6e-2,
-    )
