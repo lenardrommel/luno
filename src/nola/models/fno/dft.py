@@ -21,7 +21,7 @@ def dft_resize(
 
     z_m = jax.lax.dynamic_update_slice_in_dim(
         z_m,
-        jax.lax.slice_in_dim(z, 0, (num_modes_nnz - 1) // 2 + 1, axis=axis),
+        jax.lax.slice_in_dim(z, 0, 1 + (num_modes_nnz - 1) // 2, axis=axis),
         0,
         axis=axis,
     )
@@ -62,6 +62,21 @@ def rdft_resize(
     return z_m
 
 
+def rdft_to_even_dft(z: ArrayLike, axis: int | None = -1) -> ArrayLike:
+    # assert jnp.all(jnp.isreal(jax.lax.index_in_dim(z, -1, axis=axis)))
+
+    return jnp.concatenate(
+        (
+            z,
+            jnp.flip(
+                jnp.conj(jax.lax.slice_in_dim(z, 1, -1, axis=axis)),
+                axis=axis,
+            ),
+        ),
+        axis=axis,
+    )
+
+
 def rfftn(
     a: ArrayLike,
     modes_shape: tuple[int] | None = None,
@@ -90,6 +105,7 @@ def irfftn(
     z: ArrayLike,
     grid_shape: tuple[int] | None = None,
     axes: tuple[int, ...] | None = None,
+    last_axis_from_even: bool = False,
     norm: str = "forward",
 ) -> ArrayLike:
     if grid_shape is None and axes is None:
@@ -106,7 +122,12 @@ def irfftn(
         a_trunc_pad = dft_resize(a, num_modes=num_points, axis=axis)
         a = jnp.fft.ifft(a_trunc_pad, axis=axis, norm=norm)
 
-    a_trunc_pad = rdft_resize(a, num_modes=grid_shape[-1], axis=axes[-1])
-    a = jnp.fft.irfft(a_trunc_pad, n=grid_shape[-1], axis=axes[-1], norm=norm)
+    if last_axis_from_even and grid_shape[-1] > 2 * (z.shape[axes[-1]] - 1):
+        a_dft = rdft_to_even_dft(a, axis=axes[-1])
+        a_trunc_pad = dft_resize(a_dft, num_modes=grid_shape[-1], axis=axes[-1])
+        a = jnp.fft.ifft(a_trunc_pad, n=grid_shape[-1], axis=axes[-1], norm=norm).real
+        return a
+
+    a = jnp.fft.irfft(a, n=grid_shape[-1], axis=axes[-1], norm=norm)
 
     return a
