@@ -1,9 +1,6 @@
 import jax
 from jax import numpy as jnp
-import neuralop
-import neuralop.layers
 import neuralop.layers.fno_block
-import neuralop.layers.mlp
 import neuralop.layers.spectral_convolution
 import numpy as np
 import torch
@@ -73,13 +70,6 @@ def _neuralop_spectral_conv(
 
 
 @fixture(scope="session")
-def _neuralop_skip_conv(
-    _neuralop_fno_block: neuralop.layers.fno_block.FNOBlocks,
-):
-    return _neuralop_fno_block.fno_skips[0]
-
-
-@fixture(scope="session")
 def R(
     _neuralop_spectral_conv: neuralop.layers.spectral_convolution.SpectralConv,
 ) -> jax.Array:
@@ -95,8 +85,8 @@ def R(
 
 
 @fixture(scope="session")
-def W(_neuralop_skip_conv) -> jax.Array:
-    W = _neuralop_skip_conv.weight.data
+def W(_neuralop_fno_block: neuralop.layers.fno_block.FNOBlocks) -> jax.Array:
+    W = _neuralop_fno_block.fno_skips[0].conv.weight.data
 
     W = jnp.asarray(W.detach().numpy())  # shape = (C_in, C_out, 1, ..., 1)
     W = W.reshape(W.shape[:2])  # shape = (C_in, C_out)

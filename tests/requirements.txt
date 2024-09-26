@@ -1,6 +1,6 @@
 pytest~=8.3
 pytest-cases~=3.8
 
-neuraloperator>=0.3,<1.0
+git+https://github.com/neuraloperator/neuraloperator.git@671de25
 wandb  # needed for neuraloperator
 torch_harmonics  # needed for neuraloperator
