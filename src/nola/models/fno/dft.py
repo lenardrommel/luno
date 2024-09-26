@@ -103,6 +103,16 @@ def irfft(
             axis=axis,
         )
 
+    n_even = n % 2 == 0
+
+    if n_even and n // 2 + 1 < m:
+        z = jax.lax.dynamic_update_index_in_dim(
+            z,
+            jax.lax.index_in_dim(z, -1, axis=axis) * 2,
+            -1,
+            axis=axis,
+        )
+
     return jnp.fft.irfft(z, n=n, axis=axis, norm=norm)
 
 

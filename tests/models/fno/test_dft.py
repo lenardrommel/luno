@@ -57,6 +57,8 @@ def test_rfftn_truncation(grid_shape: tuple[int, ...], modes_shape: tuple[int, .
     "input_grid_shape,output_grid_shape",
     (
         ((4,), (6,)),
+        ((6,), (9,)),
+        ((5,), (10,)),
         ((6, 3), (10, 15)),
         ((15, 14), (64, 64)),
     ),
