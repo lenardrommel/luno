@@ -3,7 +3,7 @@ import numpy as np
 
 class FFTGrid(np.ndarray):
     def __new__(cls, shape: tuple[int, ...]):
-        grids = tuple(np.linspace(0.0, 1.0, n + 1)[:-1] for n in shape)
+        grids = tuple(np.linspace(0.0, 1.0, n, endpoint=False) for n in shape)
 
         obj = np.stack(
             np.meshgrid(
