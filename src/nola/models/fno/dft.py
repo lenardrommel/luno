@@ -62,21 +62,6 @@ def rdft_resize(
     return z_m
 
 
-def rdft_to_even_dft(z: ArrayLike, axis: int | None = -1) -> ArrayLike:
-    # assert jnp.all(jnp.isreal(jax.lax.index_in_dim(z, -1, axis=axis)))
-
-    return jnp.concatenate(
-        (
-            z,
-            jnp.flip(
-                jnp.conj(jax.lax.slice_in_dim(z, 1, -1, axis=axis)),
-                axis=axis,
-            ),
-        ),
-        axis=axis,
-    )
-
-
 def rfftn(
     a: ArrayLike,
     modes_shape: tuple[int] | None = None,
@@ -91,7 +76,7 @@ def rfftn(
     elif axes is None:
         axes = tuple(range(-len(modes_shape), 0))
 
-    z = jnp.fft.rfft(a, axis=axes[-1], norm=norm)
+    z = jnp.fft.rfft(a, axis=axis, norm=norm)
     z_pad_trunc = rdft_resize(z, num_modes=modes_shape[-1], axis=axes[-1])
 
     for num_modes, axis in zip(modes_shape[:-1], axes[:-1], strict=True):
@@ -99,6 +84,26 @@ def rfftn(
         z_pad_trunc = dft_resize(z, num_modes=num_modes, axis=axis)
 
     return z_pad_trunc
+
+
+def irfft(
+    z: ArrayLike,
+    n: int | None = None,
+    axis: int | None = -1,
+    norm: str = "forward",
+    from_even: bool = False,
+) -> jax.Array:
+    m = z.shape[axis]
+
+    if from_even and n > 2 * (m - 1):
+        z = jax.lax.dynamic_update_index_in_dim(
+            z,
+            jax.lax.index_in_dim(z, -1, axis=axis) / 2,
+            -1,
+            axis=axis,
+        )
+
+    return jnp.fft.irfft(z, n=n, axis=axis, norm=norm)
 
 
 def irfftn(
@@ -122,12 +127,12 @@ def irfftn(
         a_trunc_pad = dft_resize(a, num_modes=num_points, axis=axis)
         a = jnp.fft.ifft(a_trunc_pad, axis=axis, norm=norm)
 
-    if last_axis_from_even and grid_shape[-1] > 2 * (z.shape[axes[-1]] - 1):
-        a_dft = rdft_to_even_dft(a, axis=axes[-1])
-        a_trunc_pad = dft_resize(a_dft, num_modes=grid_shape[-1], axis=axes[-1])
-        a = jnp.fft.ifft(a_trunc_pad, n=grid_shape[-1], axis=axes[-1], norm=norm).real
-        return a
-
-    a = jnp.fft.irfft(a, n=grid_shape[-1], axis=axes[-1], norm=norm)
+    a = irfft(
+        a,
+        n=grid_shape[-1],
+        axis=axes[-1],
+        from_even=last_axis_from_even,
+        norm=norm,
+    )
 
     return a
