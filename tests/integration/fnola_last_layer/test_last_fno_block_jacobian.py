@@ -3,7 +3,7 @@ from jax import numpy as jnp
 import linox
 import numpy as np
 
-from pytest_cases import fixture, parametrize_with_cases
+from pytest_cases import fixture
 
 from nola.jacobians.fno import LastFNOBlockWeightJacobian
 

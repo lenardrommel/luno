@@ -20,7 +20,7 @@ class LastFNOBlockWeightJacobian(linox.LinearOperator):
         R_0: ArrayLike,
         W_0: ArrayLike,
         b_0: ArrayLike,
-        output_grid_shape: tuple[int, ...],
+        output_grid_shape: tuple[int, ...] | None,
         projection: Callable[[jax.Array], jax.Array],
         num_output_channels: int,
         z_in: ArrayLike | None = None,
@@ -33,7 +33,11 @@ class LastFNOBlockWeightJacobian(linox.LinearOperator):
         self._W_0 = jnp.asarray(W_0)
         self._b_0 = jnp.asarray(b_0)
 
-        self._output_grid_shape = output_grid_shape
+        self._output_grid_shape = (
+            output_grid_shape
+            if output_grid_shape is not None
+            else self._v_in.shape[:-1]
+        )
 
         self._projection = projection
         self._num_output_channels = num_output_channels
@@ -90,6 +94,14 @@ class LastFNOBlockWeightJacobian(linox.LinearOperator):
     @property
     def b_0(self) -> jax.Array:
         return self._b_0
+
+    @property
+    def input_grid_shape(self) -> tuple[int, ...]:
+        return self._v_in.shape[:-1]
+
+    @property
+    def input_grid_size(self) -> int:
+        return functools.reduce(operator.mul, self.input_grid_shape)
 
     @property
     def output_grid_shape(self) -> tuple[int, ...]:

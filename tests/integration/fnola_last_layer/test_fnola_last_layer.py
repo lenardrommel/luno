@@ -60,11 +60,14 @@ def fnola_last_layer(
 def test_sample(
     fnola_last_layer: nola.FNOLALastLayer,
     v_in: jax.Array,
-    output_grid_shape: tuple[int, ...],
+    input_grid_shape: tuple[int, ...],
+    output_grid_shape: tuple[int, ...] | None,
 ):
     parametric_gp = fnola_last_layer(v_in)
 
-    xs = nola.models.fno.FFTGrid(output_grid_shape)
+    xs = nola.models.fno.FFTGrid(
+        output_grid_shape if output_grid_shape is not None else input_grid_shape
+    )
 
     key = jax.random.key(34890)
     samples_xs = parametric_gp.sample(key, xs, size=(2000,))
