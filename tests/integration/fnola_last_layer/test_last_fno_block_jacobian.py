@@ -22,9 +22,9 @@ def jacobian(
 ):
     return LastFNOBlockWeightJacobian(
         v_in=v_in,
-        R_0=R,
-        W_0=W,
-        b_0=b,
+        R=R,
+        W=W,
+        b=b,
         output_grid_shape=output_grid_shape,
         projection=projection,
         num_output_channels=num_output_channels,

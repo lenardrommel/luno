@@ -95,14 +95,14 @@ class FNOLALastLayer:
 
             features = LastFNOBlockWeightJacobian(
                 v_in=self._v_in,
-                R_0=self._R,
-                W_0=self._W,
-                b_0=self._b,
+                R=self._R,
+                W=self._W,
+                b=self._b,
                 output_grid_shape=x.shape[:-1],
                 projection=self._projection,
                 num_output_channels=self._num_output_channels,
                 z_in=intermediates["spectral_convolution"]["z_in"],
-                v_out_0=v_out,
+                v_out=v_out,
             )
 
             return u.reshape(-1), features
