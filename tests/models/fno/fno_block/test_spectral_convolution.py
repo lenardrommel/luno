@@ -3,9 +3,7 @@ from jax import numpy as jnp
 import numpy as np
 import torch
 
-import pytest
-
-from . import _pdebench
+from . import pdebench
 
 
 def test_spectral_convolution(
@@ -14,13 +12,10 @@ def test_spectral_convolution(
     v_in_torch: torch.Tensor,
     v_out_sconv: jax.Array,
 ):
-    if grid_shape_out is not None:
-        pytest.skip(
-            "The PDEBench spectral convolution does not support output interpolation."
-        )
+    pdebench.skip_if_case_unsupported(R.shape[:-2], grid_shape_out)
 
     # Compute reference output
-    pdebench_spectral_conv = _pdebench.spectal_convolution_from_nola_weights(R)
+    pdebench_spectral_conv = pdebench.spectal_convolution_from_nola_weights(R)
 
     v_out_sconv_ref_torch = pdebench_spectral_conv(v_in_torch)
 

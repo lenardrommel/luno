@@ -3,9 +3,7 @@ import jax.numpy as jnp
 import numpy as np
 import torch
 
-import pytest
-
-from . import _pdebench
+from . import pdebench
 
 
 def test_fno_block(
@@ -16,11 +14,10 @@ def test_fno_block(
     v_in_torch: torch.Tensor,
     v_out: jax.Array,
 ):
-    if grid_shape_out is not None:
-        pytest.skip("The PDEBench FNO block does not support output interpolation.")
+    pdebench.skip_if_case_unsupported(R.shape[:-2], grid_shape_out)
 
     # Compute reference output
-    pdebench_fno_block = _pdebench.FNOBlock(R, W, b)
+    pdebench_fno_block = pdebench.FNOBlock(R, W, b)
 
     v_out_ref_torch = pdebench_fno_block(v_in_torch)
 

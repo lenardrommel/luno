@@ -1,10 +1,12 @@
-"""Reference implementation of 1D and 2D FNO blocks copied and adapted from PDEBench."""
+"""Reference implementation of 1D, 2D, and 3D FNO blocks from PDEBench."""
 
 from __future__ import annotations
 
 import numpy as np
 import torch
 import torch.nn as nn
+
+import pytest
 
 from numpy.typing import ArrayLike
 
@@ -88,6 +90,17 @@ class FNOBlock(nn.Module):
         x2 = self.w0(x)
         x = x1 + x2
         return x
+
+
+def skip_if_case_unsupported(
+    modes_shape: tuple[int, ...],
+    output_grid_shape: tuple[int, ...] | None,
+) -> None:
+    if any(n % 2 != 0 for n in modes_shape[:-1]):
+        pytest.skip("PDEBench does not support odd number of modes.")
+
+    if output_grid_shape is not None:
+        pytest.skip("PDEBench FNO block does not support output interpolation.")
 
 
 ########################################################################################
