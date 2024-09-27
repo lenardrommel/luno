@@ -76,7 +76,7 @@ def rfftn(
     elif axes is None:
         axes = tuple(range(-len(modes_shape), 0))
 
-    z = jnp.fft.rfft(a, axis=axis, norm=norm)
+    z = jnp.fft.rfft(a, axis=axes[-1], norm=norm)
     z_pad_trunc = rdft_resize(z, num_modes=modes_shape[-1], axis=axes[-1])
 
     for num_modes, axis in zip(modes_shape[:-1], axes[:-1], strict=True):
