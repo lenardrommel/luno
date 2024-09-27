@@ -36,8 +36,8 @@ def spectral_convolution(
     v_in = jnp.asarray(v_in)
     R = jnp.asarray(R)
 
-    grid_shape_in = v_in.shape[:-1]
-    D = len(grid_shape_in)
+    input_grid_shape = v_in.shape[:-1]
+    D = len(input_grid_shape)
 
     # Truncated real Fourier transform of the input
     z_in = dft.rfftn(
@@ -51,12 +51,11 @@ def spectral_convolution(
     Rz_in = (R @ z_in[..., None])[..., 0]
 
     # (Interpolated) inverse real Fourier transform
-    if output_grid_shape is None:
-        output_grid_shape = grid_shape_in
-
     v_out = dft.irfftn(
         Rz_in,
-        grid_shape=output_grid_shape,
+        grid_shape=(
+            output_grid_shape if output_grid_shape is not None else input_grid_shape
+        ),
         axes=tuple(range(-1 - D, -1)),
         norm="forward",
     )
