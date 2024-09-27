@@ -16,6 +16,8 @@ def fno_block(
     b: ArrayLike | None = None,
     output_grid_shape: tuple[int, ...] | None = None,
 ) -> tuple[jax.Array, Mapping[str, jax.Array]]:
+    input_grid_shape = v_in.shape[:-1]
+
     v_out_sconv, intermediates_sconv = spectral_convolution(
         v_in,
         R,
@@ -28,7 +30,7 @@ def fno_block(
     if b is not None:
         v_out_pointwise += jnp.asarray(b)
 
-    if output_grid_shape is not None:
+    if output_grid_shape is not None and output_grid_shape != input_grid_shape:
         v_out_pointwise = gridded_fourier_interpolation(
             v_out_pointwise,
             axes=tuple(range(len(output_grid_shape))),
