@@ -16,9 +16,10 @@ class FNOBlockCase(NamedTuple):
 @parametrize(
     "grid_shape,num_modes",
     (
+        ((32,), (16,)),
         ((2,), (1,)),
-        ((11,), (9,)),
-        ((16, 32), (8, 8)),
+        ((11,), (6,)),
+        ((16, 32), (12, 12)),
         ((11, 13), (4, 6)),
     ),
     idgen=AUTO,
@@ -35,7 +36,18 @@ def case_truncation(
     )
 
 
-@parametrize("grid_shape", ((1,), (2,), (5,), (16, 16)), idgen=AUTO)
+@parametrize(
+    "grid_shape",
+    (
+        (16,),
+        (1,),
+        (2,),
+        (3,),
+        (12, 12),
+        (8, 8, 8),
+    ),
+    idgen=AUTO,
+)
 def case_no_truncation(grid_shape: tuple[int, ...]) -> FNOBlockCase:
     return FNOBlockCase(
         grid_shape_in=grid_shape,
