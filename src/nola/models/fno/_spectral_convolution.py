@@ -57,7 +57,7 @@ def spectral_convolution(
     v_out = dft.irfftn(
         Rz_in,
         grid_shape=output_grid_shape,
-        axes=tuple(range(-D - 1, -1)),
+        axes=tuple(range(-1 - D, -1)),
         norm="forward",
     )
 
