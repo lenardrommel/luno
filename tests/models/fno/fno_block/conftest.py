@@ -1,11 +1,8 @@
 import jax
-from jax import numpy as jnp
-import neuralop.layers.fno_block
-import neuralop.layers.spectral_convolution
 import numpy as np
 import torch
 
-from pytest_cases import fixture, parametrize_with_cases
+from pytest_cases import fixture, parametrize_with_cases, unpack_fixture
 
 import nola
 
@@ -29,7 +26,7 @@ def num_channels_in(_case: FNOBlockCase) -> int:
 
 
 @fixture(scope="session")
-def grid_shape_out(_case: FNOBlockCase) -> tuple[int, ...]:
+def grid_shape_out(_case: FNOBlockCase) -> tuple[int, ...] | None:
     return _case.grid_shape_out
 
 
@@ -39,71 +36,41 @@ def num_channels_out(_case: FNOBlockCase) -> int:
 
 
 @fixture(scope="session")
-def _neuralop_fno_block(
+def weights(
     _case: FNOBlockCase,
-) -> neuralop.layers.fno_block.FNOBlocks:
-    torch.manual_seed(453879)
-
-    return neuralop.layers.fno_block.FNOBlocks(
-        in_channels=_case.num_channels_in,
-        out_channels=_case.num_channels_out,
-        n_modes=_case.num_modes,
-        output_scaling_factor=None,
-        n_layers=1,
-        max_n_modes=None,
-        fno_block_precision="full",
-        use_mlp=False,
-        stabilizer=None,
-        norm=None,
-        preactivation=False,
-        fno_skip="linear",
-        separable=False,
-        factorization=None,
+) -> tuple[jax.Array, jax.Array, jax.Array]:
+    key = jax.random.key(
+        789645
+        + sum(_case.grid_shape_in)
+        + _case.num_channels_in
+        + sum(_case.num_modes)
+        + _case.num_channels_out
+        + (453789 if _case.grid_shape_out is None else sum(_case.grid_shape_out))
     )
 
+    key, subkey = jax.random.split(key)
+    R_re_im = jax.random.normal(
+        subkey,
+        shape=(2,) + _case.num_modes + (_case.num_channels_out, _case.num_channels_in),
+    )
+    R = R_re_im[0] + 1j * R_re_im[1]
 
-@fixture(scope="session")
-def _neuralop_spectral_conv(
-    _neuralop_fno_block: neuralop.layers.fno_block.FNOBlocks,
-) -> neuralop.layers.spectral_convolution.SpectralConv:
-    return _neuralop_fno_block.convs
+    key, subkey = jax.random.split(key)
+    W = jax.random.normal(
+        subkey,
+        shape=(_case.num_channels_out, _case.num_channels_in),
+    )
 
+    key, subkey = jax.random.split(key)
+    b = jax.random.normal(
+        subkey,
+        shape=(_case.num_channels_out,),
+    )
 
-@fixture(scope="session")
-def R(
-    _neuralop_spectral_conv: neuralop.layers.spectral_convolution.SpectralConv,
-) -> jax.Array:
-    R = _neuralop_spectral_conv.weight[0]  # shape = (C_in, C_out, M_1, ..., M_D)
-
-    R = jnp.asarray(R.to_tensor().detach())
-    R = jnp.moveaxis(R, 1, -1)  # shape = (C_in, M_1, ..., M_D, C_out)
-    R = jnp.moveaxis(R, 0, -1)  # shape = (M_1, ..., M_D, C_out, C_in)
-
-    R = jnp.fft.fftshift(R, axes=tuple(range(R.ndim - 3)))
-
-    return R
-
-
-@fixture(scope="session")
-def W(_neuralop_fno_block: neuralop.layers.fno_block.FNOBlocks) -> jax.Array:
-    W = _neuralop_fno_block.fno_skips[0].conv.weight.data
-
-    W = jnp.asarray(W.detach().numpy())  # shape = (C_in, C_out, 1, ..., 1)
-    W = W.reshape(W.shape[:2])  # shape = (C_in, C_out)
-
-    return W
+    return R, W, b
 
 
-@fixture(scope="session")
-def b(
-    _neuralop_spectral_conv: neuralop.layers.spectral_convolution.SpectralConv,
-) -> jax.Array:
-    b = _neuralop_spectral_conv.bias[0, ...]
-
-    b = jnp.asarray(b.detach().numpy())  # shape = (C_out, 1, ..., 1)
-    b = b.reshape(b.shape[0])  # shape = (C_out,)
-
-    return b
+R, W, b = unpack_fixture("R, W, b", weights)
 
 
 @fixture(scope="session")
@@ -112,6 +79,15 @@ def v_in(grid_shape_in: tuple[int, ...], num_channels_in: int) -> jax.Array:
         jax.random.key(345786),
         shape=grid_shape_in + (num_channels_in,),
     )
+
+
+@fixture(scope="session")
+def v_in_torch(v_in: jax.Array) -> torch.Tensor:
+    v_in_torch = torch.as_tensor(np.asarray(v_in))  # shape = (N_1, N_2, ..., N_D, C_in)
+    v_in_torch = torch.moveaxis(v_in_torch, -1, 0)  # shape = (C_in, N_1, N_2, ..., N_D)
+    v_in_torch = v_in_torch[None, ...]  # shape = (1, C_in, N_1, N_2, ..., N_D)
+
+    return v_in_torch
 
 
 @fixture(scope="session")
@@ -133,12 +109,3 @@ def v_out(_fno_block_out) -> jax.Array:
 @fixture(scope="session")
 def v_out_sconv(_fno_block_out) -> jax.Array:
     return _fno_block_out[1]["v_out_sconv"]
-
-
-@fixture(scope="session")
-def v_in_torch(v_in: jax.Array) -> torch.Tensor:
-    v_in_torch = torch.as_tensor(np.asarray(v_in))  # shape = (N_1, N_2, ..., N_D, C_in)
-    v_in_torch = torch.moveaxis(v_in_torch, -1, 0)  # shape = (C_in, N_1, N_2, ..., N_D)
-    v_in_torch = v_in_torch[None, ...]  # shape = (1, C_in, N_1, N_2, ..., N_D)
-
-    return v_in_torch

@@ -9,7 +9,7 @@ class FNOBlockCase(NamedTuple):
 
     num_modes: tuple[int, ...]
 
-    grid_shape_out: tuple[int, ...]
+    grid_shape_out: tuple[int, ...] | None
     num_channels_out: int
 
 
@@ -30,7 +30,7 @@ def case_truncation(
         grid_shape_in=grid_shape,
         num_channels_in=4,
         num_modes=num_modes,
-        grid_shape_out=grid_shape,
+        grid_shape_out=None,
         num_channels_out=2,
     )
 
@@ -40,8 +40,8 @@ def case_no_truncation(grid_shape: tuple[int, ...]) -> FNOBlockCase:
     return FNOBlockCase(
         grid_shape_in=grid_shape,
         num_channels_in=3,
-        num_modes=grid_shape,
-        grid_shape_out=grid_shape,
+        num_modes=grid_shape[:-1] + (grid_shape[-1] // 2 + 1,),
+        grid_shape_out=None,
         num_channels_out=3,
     )
 

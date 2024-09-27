@@ -1,44 +1,36 @@
 import jax
 from jax import numpy as jnp
-import neuralop.layers.spectral_convolution
 import numpy as np
 import torch
 
 import pytest
-from pytest_cases import fixture
 
-
-@fixture(scope="session")
-def v_out_sconv_ref(
-    v_in_torch: torch.Tensor,
-    b: jax.Array,
-    _neuralop_spectral_conv: neuralop.layers.spectral_convolution.SpectralConv,
-    grid_shape_out: tuple[int, ...],
-) -> jax.Array:
-    v_out_ref_torch = _neuralop_spectral_conv(v_in_torch, output_shape=grid_shape_out)
-
-    v_out_ref = jnp.asarray(
-        v_out_ref_torch.detach().numpy()  # shape = (1, C_out, N_1, N_2, ..., N_D)
-    )
-    v_out_ref = v_out_ref[0, ...]  # shape = (C_out, N_1, N_2, ..., N_D)
-    v_out_ref = jnp.moveaxis(v_out_ref, 0, -1)  # shape = (N_1, N_2, ..., N_D, C_out)
-
-    return v_out_ref - b
+from . import _pdebench
 
 
 def test_spectral_convolution(
-    grid_shape_in: tuple[int, ...],
     grid_shape_out: tuple[int, ...],
+    R: jax.Array,
+    v_in_torch: torch.Tensor,
     v_out_sconv: jax.Array,
-    v_out_sconv_ref: jax.Array,
 ):
-    if any(
-        n_out != n_in for n_in, n_out in zip(grid_shape_in[:-1], grid_shape_out[:-1])
-    ):
+    if grid_shape_out is not None:
         pytest.skip(
-            "There is a bug in the `neuraloperator` library."
-            "Interpolation only works along the last axis."
+            "The PDEBench spectral convolution does not support output interpolation."
         )
+
+    # Compute reference output
+    pdebench_spectral_conv = _pdebench.spectal_convolution_from_nola_weights(R)
+
+    v_out_sconv_ref_torch = pdebench_spectral_conv(v_in_torch)
+
+    v_out_sconv_ref = jnp.asarray(
+        v_out_sconv_ref_torch.detach().numpy()  # shape = (1, C_out, N_1, N_2, ..., N_D)
+    )
+    v_out_sconv_ref = v_out_sconv_ref[0, ...]  # shape = (C_out, N_1, N_2, ..., N_D)
+    v_out_sconv_ref = jnp.moveaxis(
+        v_out_sconv_ref, 0, -1
+    )  # shape = (N_1, N_2, ..., N_D, C_out)
 
     np.testing.assert_allclose(
         v_out_sconv,
