@@ -7,14 +7,14 @@ from . import pdebench
 
 
 def test_fno_block(
-    grid_shape_out: tuple[int, ...] | None,
+    output_grid_shape: tuple[int, ...] | None,
     R: jax.Array,
     W: jax.Array,
     b: jax.Array,
     v_in_torch: torch.Tensor,
     v_out: jax.Array,
 ):
-    pdebench.skip_if_case_unsupported(R.shape[:-2], grid_shape_out)
+    pdebench.skip_if_case_unsupported(R.shape[:-2], output_grid_shape)
 
     # Compute reference output
     pdebench_fno_block = pdebench.FNOBlock(R, W, b)

@@ -7,12 +7,12 @@ from . import pdebench
 
 
 def test_spectral_convolution(
-    grid_shape_out: tuple[int, ...],
+    output_grid_shape: tuple[int, ...],
     R: jax.Array,
     v_in_torch: torch.Tensor,
     v_out_sconv: jax.Array,
 ):
-    pdebench.skip_if_case_unsupported(R.shape[:-2], grid_shape_out)
+    pdebench.skip_if_case_unsupported(R.shape[:-2], output_grid_shape)
 
     # Compute reference output
     pdebench_spectral_conv = pdebench.spectal_convolution_from_nola_weights(R)

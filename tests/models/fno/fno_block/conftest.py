@@ -16,23 +16,23 @@ def _case(params: FNOBlockCase) -> FNOBlockCase:
 
 
 @fixture(scope="session")
-def grid_shape_in(_case: FNOBlockCase) -> tuple[int, ...]:
-    return _case.grid_shape_in
+def input_grid_shape(_case: FNOBlockCase) -> tuple[int, ...]:
+    return _case.input_grid_shape
 
 
 @fixture(scope="session")
-def num_channels_in(_case: FNOBlockCase) -> int:
-    return _case.num_channels_in
+def num_input_channels(_case: FNOBlockCase) -> int:
+    return _case.num_input_channels
 
 
 @fixture(scope="session")
-def grid_shape_out(_case: FNOBlockCase) -> tuple[int, ...] | None:
-    return _case.grid_shape_out
+def output_grid_shape(_case: FNOBlockCase) -> tuple[int, ...] | None:
+    return _case.output_grid_shape
 
 
 @fixture(scope="session")
-def num_channels_out(_case: FNOBlockCase) -> int:
-    return _case.num_channels_out
+def num_output_channels(_case: FNOBlockCase) -> int:
+    return _case.num_output_channels
 
 
 @fixture(scope="session")
@@ -41,30 +41,32 @@ def weights(
 ) -> tuple[jax.Array, jax.Array, jax.Array]:
     key = jax.random.key(
         789645
-        + sum(_case.grid_shape_in)
-        + _case.num_channels_in
-        + sum(_case.num_modes)
-        + _case.num_channels_out
-        + (453789 if _case.grid_shape_out is None else sum(_case.grid_shape_out))
+        + sum(_case.input_grid_shape)
+        + _case.num_input_channels
+        + sum(_case.modes_shape)
+        + _case.num_output_channels
+        + (453789 if _case.output_grid_shape is None else sum(_case.output_grid_shape))
     )
 
     key, subkey = jax.random.split(key)
     R_re_im = jax.random.normal(
         subkey,
-        shape=(2,) + _case.num_modes + (_case.num_channels_out, _case.num_channels_in),
+        shape=(2,)
+        + _case.modes_shape
+        + (_case.num_output_channels, _case.num_input_channels),
     )
     R = R_re_im[0] + 1j * R_re_im[1]
 
     key, subkey = jax.random.split(key)
     W = jax.random.normal(
         subkey,
-        shape=(_case.num_channels_out, _case.num_channels_in),
+        shape=(_case.num_output_channels, _case.num_input_channels),
     )
 
     key, subkey = jax.random.split(key)
     b = jax.random.normal(
         subkey,
-        shape=(_case.num_channels_out,),
+        shape=(_case.num_output_channels,),
     )
 
     return R, W, b
@@ -74,10 +76,10 @@ R, W, b = unpack_fixture("R, W, b", weights)
 
 
 @fixture(scope="session")
-def v_in(grid_shape_in: tuple[int, ...], num_channels_in: int) -> jax.Array:
+def v_in(input_grid_shape: tuple[int, ...], num_input_channels: int) -> jax.Array:
     return jax.random.normal(
         jax.random.key(345786),
-        shape=grid_shape_in + (num_channels_in,),
+        shape=input_grid_shape + (num_input_channels,),
     )
 
 
@@ -96,9 +98,15 @@ def _fno_block_out(
     R: jax.Array,
     W: jax.Array,
     b: jax.Array,
-    grid_shape_out: tuple[int, ...],
+    output_grid_shape: tuple[int, ...],
 ):
-    return nola.models.fno.fno_block(v_in, R, W, b, output_grid_shape=grid_shape_out)
+    return nola.models.fno.fno_block(
+        v_in,
+        R,
+        W,
+        b,
+        output_grid_shape=output_grid_shape,
+    )
 
 
 @fixture(scope="session")

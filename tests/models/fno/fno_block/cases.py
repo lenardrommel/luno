@@ -4,17 +4,17 @@ from typing import NamedTuple
 
 
 class FNOBlockCase(NamedTuple):
-    grid_shape_in: tuple[int, ...]
-    num_channels_in: int
+    input_grid_shape: tuple[int, ...]
+    num_input_channels: int
 
-    num_modes: tuple[int, ...]
+    modes_shape: tuple[int, ...]
 
-    grid_shape_out: tuple[int, ...] | None
-    num_channels_out: int
+    output_grid_shape: tuple[int, ...] | None
+    num_output_channels: int
 
 
 @parametrize(
-    "grid_shape,num_modes",
+    "grid_shape,modes_shape",
     (
         ((32,), (16,)),
         ((2,), (1,)),
@@ -25,14 +25,14 @@ class FNOBlockCase(NamedTuple):
     idgen=AUTO,
 )
 def case_truncation(
-    grid_shape: tuple[int, ...], num_modes: tuple[int, ...]
+    grid_shape: tuple[int, ...], modes_shape: tuple[int, ...]
 ) -> FNOBlockCase:
     return FNOBlockCase(
-        grid_shape_in=grid_shape,
-        num_channels_in=4,
-        num_modes=num_modes,
-        grid_shape_out=None,
-        num_channels_out=2,
+        input_grid_shape=grid_shape,
+        num_input_channels=4,
+        modes_shape=modes_shape,
+        output_grid_shape=None,
+        num_output_channels=2,
     )
 
 
@@ -50,16 +50,16 @@ def case_truncation(
 )
 def case_no_truncation(grid_shape: tuple[int, ...]) -> FNOBlockCase:
     return FNOBlockCase(
-        grid_shape_in=grid_shape,
-        num_channels_in=3,
-        num_modes=grid_shape[:-1] + (grid_shape[-1] // 2 + 1,),
-        grid_shape_out=None,
-        num_channels_out=3,
+        input_grid_shape=grid_shape,
+        num_input_channels=3,
+        modes_shape=grid_shape[:-1] + (grid_shape[-1] // 2 + 1,),
+        output_grid_shape=None,
+        num_output_channels=3,
     )
 
 
 @parametrize(
-    "grid_shape_in,num_modes,grid_shape_out",
+    "input_grid_shape,modes_shape,output_grid_shape",
     (
         ((3,), (3,), (6,)),
         ((5,), (2,), (3,)),
@@ -68,14 +68,14 @@ def case_no_truncation(grid_shape: tuple[int, ...]) -> FNOBlockCase:
     idgen=AUTO,
 )
 def case_interpolation(
-    grid_shape_in: tuple[int, ...],
-    num_modes: tuple[int, ...],
-    grid_shape_out: tuple[int, ...],
+    input_grid_shape: tuple[int, ...],
+    modes_shape: tuple[int, ...],
+    output_grid_shape: tuple[int, ...],
 ) -> FNOBlockCase:
     return FNOBlockCase(
-        grid_shape_in=grid_shape_in,
-        num_channels_in=1,
-        num_modes=num_modes,
-        grid_shape_out=grid_shape_out,
-        num_channels_out=5,
+        input_grid_shape=input_grid_shape,
+        num_input_channels=1,
+        modes_shape=modes_shape,
+        output_grid_shape=output_grid_shape,
+        num_output_channels=5,
     )

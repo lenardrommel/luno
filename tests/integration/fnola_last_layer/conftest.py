@@ -25,27 +25,27 @@ def _fno_block_case(_case: FNOBlockCase) -> FNOBlockCase:
 
 @fixture(scope="session")
 def input_grid_shape(_fno_block_case: FNOBlockCase) -> tuple[int, ...]:
-    return _fno_block_case.grid_shape_in
+    return _fno_block_case.input_grid_shape
 
 
 @fixture(scope="session")
 def num_input_channels(_fno_block_case: FNOBlockCase) -> int:
-    return _fno_block_case.num_channels_in
+    return _fno_block_case.num_input_channels
 
 
 @fixture(scope="session")
 def num_modes(_fno_block_case: FNOBlockCase) -> tuple[int, ...]:
-    return _fno_block_case.num_modes
+    return _fno_block_case.modes_shape
 
 
 @fixture(scope="session")
 def num_hidden_channels(_fno_block_case: FNOBlockCase) -> tuple[int, ...]:
-    return _fno_block_case.num_channels_out
+    return _fno_block_case.num_output_channels
 
 
 @fixture(scope="session")
 def output_grid_shape(_fno_block_case: FNOBlockCase) -> tuple[int, ...]:
-    return _fno_block_case.grid_shape_out
+    return _fno_block_case.output_grid_shape
 
 
 @fixture(scope="session")
