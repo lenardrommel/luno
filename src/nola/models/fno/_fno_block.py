@@ -16,6 +16,8 @@ def fno_block(
     b: ArrayLike | None = None,
     output_grid_shape: tuple[int, ...] | None = None,
 ) -> tuple[jax.Array, Mapping[str, jax.Array]]:
+    v_in = jnp.asarray(v_in)
+
     input_grid_shape = v_in.shape[:-1]
 
     v_out_sconv, intermediates_sconv = spectral_convolution(
