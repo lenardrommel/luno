@@ -1,3 +1,4 @@
+import jax
 from jax import numpy as jnp
 
 from jax.typing import ArrayLike
@@ -9,7 +10,7 @@ def gridded_fourier_interpolation(
     v: ArrayLike,
     axes: tuple[int, ...],
     output_grid_shape: tuple[int, ...],
-):
+) -> jax.Array:
     v = jnp.asarray(v)
 
     input_grid_shape = tuple(v.shape[axis] for axis in axes)
