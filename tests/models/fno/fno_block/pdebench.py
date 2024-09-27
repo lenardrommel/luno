@@ -41,7 +41,7 @@ def spectal_convolution_from_nola_weights(
         conv.weights1.data = R
     elif len(modes) == 2:
         conv.weights1.data = R[:, :, : modes[0], :]
-        conv.weights1.data = R[:, :, -modes[0] :, :]
+        conv.weights2.data = R[:, :, -modes[0] :, :]
     else:
         assert len(modes) == 3
 
