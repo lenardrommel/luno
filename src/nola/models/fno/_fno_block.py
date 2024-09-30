@@ -1,7 +1,7 @@
+from collections.abc import Mapping
+
 import jax
 from jax import numpy as jnp
-
-from collections.abc import Mapping
 from jax.typing import ArrayLike
 
 from .._pointwise_linear import pointwise_linear
