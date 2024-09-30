@@ -1,9 +1,9 @@
-import jax
-from jax import numpy as jnp
-import linox
-
 from collections.abc import Callable
-from jax.typing import ArrayLike
+
+import jax
+import linox
+from jax import numpy as jnp
+from jax.typing import ArrayLike, DTypeLike
 from linox.typing import ShapeLike
 
 
@@ -50,12 +50,14 @@ class ParametricGaussianProcess:
         key: jax.Array,
         x: ArrayLike | None = None,
         size: ShapeLike = (),
+        dtype: DTypeLike = jnp.float32,
     ) -> ArrayLike:
         weight_cov_lsqrt = linox.lsqrt(self._weight_cov)
 
         weight_sample = jax.random.normal(
             key,
             shape=size + weight_cov_lsqrt.shape[-1:],
+            dtype=dtype,
         )[..., None]
         weight_sample = weight_cov_lsqrt @ weight_sample
 
