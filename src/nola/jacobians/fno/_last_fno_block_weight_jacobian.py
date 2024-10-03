@@ -6,7 +6,8 @@ from jax import numpy as jnp
 import linox
 from linox._arithmetic import CongruenceTransform
 
-from nola.models.fno import fno_block
+from nola.covariances.fno import CircularlySymmetricDiagonal
+from nola.models.fno import dft, fno_block
 from nola.models.fno._periodic_interpolation import gridded_fourier_interpolation
 
 from collections.abc import Callable
@@ -193,52 +194,97 @@ class LastFNOBlockWeightJacobian(linox.LinearOperator):
 ########################################################################################
 
 
-#############################################
-# (LastFNOBlockWeightJacobian, Identity) #
-#############################################
+#############################################################
+# (LastFNOBlockWeightJacobian, CircularlySymmetricDiagonal) #
+#############################################################
 
 
-class CongruenceTransform_LastFNOBlockWeightJacobian_Identity(CongruenceTransform):
+class CongruenceTransform_LastFNOBlockWeightJacobian_CircularlySymmetricDiagonal(
+    CongruenceTransform
+):
     @functools.cached_property
-    def projection_jacobian_outer_product_diagonal(self) -> jax.Array:
-        J = jax.vmap(
+    def projection_pointwise_jacobian(self) -> jax.Array:
+        return jax.vmap(
             jax.jacobian(self._A.projection),
             in_axes=0,
             out_axes=0,
         )(self._A.v_out.reshape(-1, self._A.num_hidden_channels))
 
-        return jnp.sum(J**2, axis=-1)
-
 
 @linox.congruence_transform.dispatch
 def _(
-    A: LastFNOBlockWeightJacobian, B: linox.Identity
-) -> CongruenceTransform_LastFNOBlockWeightJacobian_Identity:
-    return CongruenceTransform_LastFNOBlockWeightJacobian_Identity(A, B)
+    A: LastFNOBlockWeightJacobian, B: CircularlySymmetricDiagonal
+) -> CongruenceTransform_LastFNOBlockWeightJacobian_CircularlySymmetricDiagonal:
+    return CongruenceTransform_LastFNOBlockWeightJacobian_CircularlySymmetricDiagonal(
+        A, B
+    )
 
 
 @linox.diagonal.dispatch
-def _(JJT: CongruenceTransform_LastFNOBlockWeightJacobian_Identity) -> jax.Array:
-    J: LastFNOBlockWeightJacobian = JJT._A
+def _(
+    JSigmaJT: CongruenceTransform_LastFNOBlockWeightJacobian_CircularlySymmetricDiagonal,
+) -> jax.Array:
+    J: LastFNOBlockWeightJacobian = JSigmaJT._A
+    Sigma: CircularlySymmetricDiagonal = JSigmaJT._B
 
-    # Spectral convolution
-    z = J.z_in
+    D = len(J.input_grid_shape)
+
+    ########################
+    # Spectral convolution #
+    ########################
+
+    z = J.z_in  # shape: (M_in_1, ..., M_in_D, C_in)
+    Sigma_R_real = Sigma.R_real  # shape: (M_in_1, ..., M_in_D, C_hidden, C_in)
+
+    # Truncation
+    input_modes_shape = z.shape[:-1]
+    hidden_modes_shape = J.output_grid_shape[:-1] + (J.output_grid_shape[-1] // 2 + 1,)
+
+    nnz_modes_shape = tuple(
+        min(M_in, M_hidden)
+        for M_in, M_hidden in zip(input_modes_shape, hidden_modes_shape, strict=True)
+    )
+
+    z = dft.rdftn_trunc(
+        z,
+        modes_shape=nnz_modes_shape,
+        axes=tuple(range(D)),
+    )
+    Sigma_R_real = dft.rdftn_trunc(
+        Sigma_R_real,
+        modes_shape=nnz_modes_shape,
+        axes=tuple(range(D)),
+    )
+
     z_abs_sq = z.real**2 + z.imag**2
 
-    diag_sconv = jnp.sum(z_abs_sq[..., 0, :])
+    # Rescaling along last mode axis
+    alpha = jnp.full_like(
+        z_abs_sq,
+        4,
+        dtype=jnp.uint8,
+        shape=nnz_modes_shape[-1],
+    )
+    alpha = alpha.at[0].set(1)
 
-    if any(m_out < m_in for m_out, m_in in zip(J.output_grid_shape[:-1], z.shape[:-2])):
-        raise NotImplementedError()
+    if (
+        J.output_grid_shape[-1] % 2 == 0
+        and hidden_modes_shape[-1] <= input_modes_shape[-1]
+    ):
+        alpha = alpha.at[-1].set(1)
 
-    m = J.output_grid_shape[-1] // 2 + 1
+    # Compute diagonal
+    diag_sconv = jnp.sum(
+        Sigma_R_real  # shape: (M_1, ..., M_D, C_hidden, C_in)
+        * alpha[:, None, None]  # shape: (M_D, 1, 1)
+        * z_abs_sq[..., None, :],  # shape: (M_1, ..., M_D, 1, C_in)
+        axis=tuple(range(D)) + (-1,),
+    )  # shape: (C_hidden,)
 
-    if J.output_grid_shape[-1] % 2 == 0 and m <= z.shape[-2]:
-        diag_sconv += 4 * jnp.sum(z_abs_sq[..., 1 : min(m, z.shape[-2]) - 1, :])
-        diag_sconv += jnp.sum(z_abs_sq[..., m - 1, :])
-    else:
-        diag_sconv += 4 * jnp.sum(z_abs_sq[..., 1 : min(m, z.shape[-2]), :])
+    ###################################
+    # (Interpolated) Pointwise Linear #
+    ###################################
 
-    # Skip connection
     v = J.v_in
     v_interp = gridded_fourier_interpolation(
         v,
@@ -246,15 +292,48 @@ def _(JJT: CongruenceTransform_LastFNOBlockWeightJacobian_Identity) -> jax.Array
         output_grid_shape=J.output_grid_shape,
     )
 
-    diag_skip = jnp.sum(v_interp**2, axis=-1)
-    diag_skip = diag_skip.reshape(-1, 1)
+    diag_pointwise = jnp.sum(
+        v_interp[..., None, :] ** 2 * Sigma.W,
+        axis=-1,
+    ).reshape(J.output_grid_size, J.num_hidden_channels)
 
-    # Bias
-    diag_bias = 1
+    #############
+    # FNO Block #
+    #############
 
-    # Projection
-    diag_proj = JJT.projection_jacobian_outer_product_diagonal
+    diag_fno_block = diag_sconv + diag_pointwise
 
-    diag = diag_proj * (diag_sconv + diag_skip + diag_bias)
+    if J.b is not None:
+        diag_fno_block += Sigma.b
+
+    ##############
+    # Projection #
+    ##############
+
+    J_proj = JSigmaJT.projection_pointwise_jacobian  # shape: (N_out, C_out, C_hidden)
+
+    diag = jnp.sum(
+        diag_fno_block[:, None, :] * J_proj**2,
+        axis=-1,
+    )  # shape: (N_out, C_out)
 
     return diag.reshape(-1)
+
+
+##########################################
+# (LastFNOBlockWeightJacobian, Identity) #
+##########################################
+
+
+@linox.congruence_transform.dispatch
+def _(
+    A: LastFNOBlockWeightJacobian, B: linox.Identity
+) -> CongruenceTransform_LastFNOBlockWeightJacobian_CircularlySymmetricDiagonal:
+    return CongruenceTransform_LastFNOBlockWeightJacobian_CircularlySymmetricDiagonal(
+        A,
+        CircularlySymmetricDiagonal(
+            R_real=jnp.ones_like(A.R, dtype=jnp.float32),
+            W=jnp.ones_like(A.W),
+            b=jnp.ones_like(A.b) if A.b is not None else None,
+        ),
+    )

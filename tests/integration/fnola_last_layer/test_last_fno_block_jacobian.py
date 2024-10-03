@@ -5,6 +5,7 @@ import numpy as np
 
 from pytest_cases import fixture
 
+from nola.covariances.fno import CircularlySymmetricDiagonal
 from nola.jacobians.fno import LastFNOBlockWeightJacobian
 
 from collections.abc import Callable
@@ -31,12 +32,15 @@ def jacobian(
     )
 
 
-def test_outer_product_diagonal(jacobian: LastFNOBlockWeightJacobian):
-    JJT = linox.congruence_transform(jacobian, linox.Identity(jacobian.shape[1]))
+def test_linearized_pushforward_marginal_covariance(
+    jacobian: LastFNOBlockWeightJacobian,
+    weight_covariance: CircularlySymmetricDiagonal,
+):
+    JSigmaJT = linox.congruence_transform(jacobian, weight_covariance)
 
     np.testing.assert_allclose(
-        linox.diagonal(JJT),
-        jnp.diag(JJT.todense()),
-        rtol=1e-6,
-        atol=1e-6,
+        linox.diagonal(JSigmaJT),
+        jnp.diag(JSigmaJT.todense()),
+        rtol=1e-5,
+        atol=1e-5,
     )

@@ -1,6 +1,7 @@
 # isort: off
 from . import (
     _linox,
+    covariances,
     randprocs,
     models,
     jacobians,

@@ -62,6 +62,28 @@ def rdft_resize(
     return z_m
 
 
+def rdftn_trunc(
+    z: ArrayLike,
+    modes_shape: tuple[int] | None = None,
+    axes: tuple[int, ...] | None = None,
+) -> ArrayLike:
+    if modes_shape is None or modes_shape == tuple(z.shape[axis] for axis in axes):
+        return z
+
+    z_shift = jnp.fft.fftshift(z, axes=axes[:-1])
+
+    slices = [slice(None)] * z_shift.ndim
+
+    for axis, m in zip(axes[:-1], modes_shape[:-1], strict=True):
+        slices[axis] = slice(m // 2, -m // 2)
+
+    slices[axes[-1]] = slice(0, modes_shape[-1])
+
+    z_trunc_shift = z_shift[*slices]
+
+    return jnp.fft.ifftshift(z_trunc_shift, axes=axes[:-1])
+
+
 def rfftn(
     a: ArrayLike,
     modes_shape: tuple[int] | None = None,

@@ -10,6 +10,8 @@ from pytest_cases import (
 )
 from tests.models.fno.fno_block.cases import FNOBlockCase
 
+import nola
+
 from collections.abc import Callable
 
 
@@ -34,7 +36,7 @@ def num_input_channels(_fno_block_case: FNOBlockCase) -> int:
 
 
 @fixture(scope="session")
-def num_modes(_fno_block_case: FNOBlockCase) -> tuple[int, ...]:
+def modes_shape(_fno_block_case: FNOBlockCase) -> tuple[int, ...]:
     return _fno_block_case.modes_shape
 
 
@@ -58,15 +60,13 @@ def v_in(input_grid_shape: tuple[int, ...], num_input_channels: int) -> jax.Arra
 
 @fixture(scope="session")
 def R(
-    num_modes: tuple[int, ...],
+    modes_shape: tuple[int, ...],
     num_input_channels: int,
     num_hidden_channels: int,
 ) -> jax.Array:
-    modes_shape = num_modes[:-1] + (num_modes[-1] // 2 + 1,)
-
     R_real_imag = jax.random.normal(
         jax.random.key(
-            6379975 + sum(num_modes) + num_input_channels + num_hidden_channels
+            6379975 + sum(modes_shape) + num_input_channels + num_hidden_channels
         ),
         shape=(2,) + modes_shape + (num_hidden_channels, num_input_channels),
     )
@@ -88,6 +88,31 @@ def b(num_hidden_channels: int) -> jax.Array:
         jax.random.key(987264 + num_hidden_channels),
         shape=(num_hidden_channels,),
     )
+
+
+@fixture(scope="session")
+def weight_covariance(
+    modes_shape: tuple[int, ...],
+    num_input_channels: int,
+    num_hidden_channels: int,
+) -> tuple[jax.Array, jax.Array, jax.Array | None]:
+    key = jax.random.key(
+        36789 + sum(modes_shape) + num_input_channels + num_hidden_channels
+    )
+
+    key, subkey = jax.random.split(key)
+    R_real = jax.random.normal(
+        key,
+        shape=modes_shape + (num_hidden_channels, num_input_channels),
+    )
+
+    key, subkey = jax.random.split(subkey)
+    W = jax.random.normal(key, shape=(num_hidden_channels, num_input_channels))
+
+    key, subkey = jax.random.split(subkey)
+    b = jax.random.normal(subkey, shape=(num_hidden_channels,))
+
+    return nola.covariances.fno.CircularlySymmetricDiagonal(R_real, W, b)
 
 
 @parametrize("num_output_channels", [None, 1, 2], idgen=AUTO)
