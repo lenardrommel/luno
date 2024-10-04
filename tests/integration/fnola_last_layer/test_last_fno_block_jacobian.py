@@ -32,6 +32,15 @@ def jacobian(
     )
 
 
+def test_transpose(jacobian: LastFNOBlockWeightJacobian):
+    np.testing.assert_allclose(
+        jacobian.T @ jnp.eye(jacobian.shape[0]),
+        jnp.transpose(jacobian.todense()),
+        rtol=1e-5,
+        atol=1e-5,
+    )
+
+
 def test_linearized_pushforward_marginal_covariance(
     jacobian: LastFNOBlockWeightJacobian,
     weight_covariance: CircularlySymmetricDiagonal,

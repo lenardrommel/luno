@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import operator
 
@@ -50,6 +52,20 @@ class LastFNOBlockWeightJacobian(linox.LinearOperator):
                     (self._weights_0,),
                     (weights,),
                 )[1],
+                in_axes=-1,
+                out_axes=-1,
+            ),
+            signature=f"(n,k)->(m,k)",
+        )
+
+        self._vectorized_vjp = jnp.vectorize(
+            jax.vmap(
+                (
+                    lambda outputs: jax.vjp(
+                        self._last_fno_block_forward,
+                        self._weights_0,
+                    )[1](outputs)[0]
+                ),
                 in_axes=-1,
                 out_axes=-1,
             ),
@@ -187,6 +203,33 @@ class LastFNOBlockWeightJacobian(linox.LinearOperator):
         )
 
         self._z_in = intermediates["spectral_convolution"]["z_in"]
+
+    def transpose(self) -> LastFNOBlockTransposeWeightJacobian:
+        return LastFNOBlockTransposeWeightJacobian(self)
+
+    @property
+    def T(self) -> LastFNOBlockTransposeWeightJacobian:
+        return self.transpose()
+
+
+class LastFNOBlockTransposeWeightJacobian(linox.LinearOperator):
+    def __init__(self, jacobian: LastFNOBlockWeightJacobian) -> None:
+        self._jacobian = jacobian
+
+        super().__init__(
+            shape=(self._jacobian.shape[1], self._jacobian.shape[0]),
+            dtype=self._jacobian.dtype,
+        )
+
+    def _matmul(self, outputs: jax.Array) -> jax.Array:
+        return self._jacobian._vectorized_vjp(outputs)
+
+    def transpose(self) -> LastFNOBlockWeightJacobian:
+        return self._jacobian
+
+    @property
+    def T(self) -> LastFNOBlockWeightJacobian:
+        return self.transpose()
 
 
 ########################################################################################
