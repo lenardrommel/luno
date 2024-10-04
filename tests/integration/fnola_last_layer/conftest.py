@@ -1,5 +1,6 @@
 import jax
 from jax import numpy as jnp
+import linox
 
 from pytest_cases import (
     AUTO,
@@ -90,29 +91,77 @@ def b(num_hidden_channels: int) -> jax.Array:
     )
 
 
+def case_weight_covariance_scaled_identity(
+    R: jax.Array,
+    W: jax.Array,
+    b: jax.Array,
+) -> linox.LinearOperator:
+    var = 0.42
+
+    return var * linox.Identity(2 * R.size + W.size + b.size)
+
+
 @fixture(scope="session")
-def weight_covariance(
+def _random_circularly_symmetric_diagonal(
     modes_shape: tuple[int, ...],
     num_input_channels: int,
     num_hidden_channels: int,
-) -> tuple[jax.Array, jax.Array, jax.Array | None]:
+) -> nola.covariances.fno.CircularlySymmetricDiagonal:
     key = jax.random.key(
         36789 + sum(modes_shape) + num_input_channels + num_hidden_channels
     )
 
     key, subkey = jax.random.split(key)
-    R_real = jax.random.normal(
+    R_real = jax.random.gamma(
         key,
+        1.0,
         shape=modes_shape + (num_hidden_channels, num_input_channels),
     )
 
     key, subkey = jax.random.split(subkey)
-    W = jax.random.normal(key, shape=(num_hidden_channels, num_input_channels))
+    W = jax.random.gamma(key, 1.0, shape=(num_hidden_channels, num_input_channels))
 
     key, subkey = jax.random.split(subkey)
-    b = jax.random.normal(subkey, shape=(num_hidden_channels,))
+    b = jax.random.gamma(subkey, 1.0, shape=(num_hidden_channels,))
 
     return nola.covariances.fno.CircularlySymmetricDiagonal(R_real, W, b)
+
+
+def case_weight_covariance_circularly_symmetric_diagonal(
+    _random_circularly_symmetric_diagonal: nola.covariances.fno.CircularlySymmetricDiagonal,
+) -> nola.covariances.fno.CircularlySymmetricDiagonal:
+    return _random_circularly_symmetric_diagonal
+
+
+@parametrize("rank", (10,), idgen=AUTO)
+def case_weight_covariance_diagonal_plus_low_rank(
+    _random_circularly_symmetric_diagonal: nola.covariances.fno.CircularlySymmetricDiagonal,
+    rank: int,
+) -> linox.PositiveDiagonalPlusSymmetricLowRank:
+    key = jax.random.key(65789 + _random_circularly_symmetric_diagonal.shape[0])
+    U, S, _ = jnp.linalg.svd(
+        jax.random.normal(
+            key,
+            shape=(_random_circularly_symmetric_diagonal.shape[0], rank),
+        ),
+        full_matrices=False,
+    )
+
+    return linox.PositiveDiagonalPlusSymmetricLowRank(
+        _random_circularly_symmetric_diagonal,
+        linox.SymmetricLowRank(U, S**2),
+    )
+
+
+@fixture(scope="session")
+@parametrize_with_cases(
+    "weight_covariance",
+    cases=".",
+    prefix="case_weight_covariance_",
+    scope="session",
+)
+def weight_covariance(weight_covariance: linox.LinearOperator) -> linox.LinearOperator:
+    return weight_covariance
 
 
 @parametrize("num_output_channels", [None, 1, 2], idgen=AUTO)

@@ -48,6 +48,35 @@ def _(
     )
 
 
+##########################################################
+# (LinearOperator, PositiveDiagonalPlusSymmetricLowRank) #
+##########################################################
+
+
+class CongruenceTransform_LinearOperator_PositiveDiagonalPlusSymmetricLowRank(
+    CongruenceTransform
+):
+    pass
+
+
+@linox.congruence_transform.dispatch
+def _(
+    A: linox.LinearOperator,
+    B: linox.PositiveDiagonalPlusSymmetricLowRank,
+) -> CongruenceTransform_LinearOperator_PositiveDiagonalPlusSymmetricLowRank:
+    return CongruenceTransform_LinearOperator_PositiveDiagonalPlusSymmetricLowRank(A, B)
+
+
+@linox.diagonal.dispatch
+def _(
+    A: CongruenceTransform_LinearOperator_PositiveDiagonalPlusSymmetricLowRank,
+) -> jax.Array:
+    return sum(
+        linox.diagonal(linox.congruence_transform(A._A, summand))
+        for summand in A._B.operator_list
+    )
+
+
 ##########################################
 # (LinearOperator, ScaledLinearOperator) #
 ##########################################

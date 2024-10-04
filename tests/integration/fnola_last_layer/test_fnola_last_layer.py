@@ -1,5 +1,4 @@
 import jax
-from jax import numpy as jnp
 import linox
 
 from pytest_cases import fixture
@@ -11,38 +10,11 @@ from collections.abc import Callable
 
 
 @fixture(scope="session")
-def prior_var() -> float:
-    return 0.42
-
-
-@fixture(scope="session")
-def rank() -> int:
-    return 10
-
-
-@fixture(scope="session")
-def weight_cov(
-    R: jax.Array,
-    W: jax.Array,
-    b: jax.Array,
-    prior_var: float,
-    rank: int,
-) -> linox.IsotropicScalingPlusSymmetricLowRank:
-    key = jax.random.key(65789)
-    U, S, _ = jnp.linalg.svd(
-        jax.random.normal(key, shape=(2 * R.size + W.size + b.size, rank)),
-        full_matrices=False,
-    )
-
-    return linox.IsotropicScalingPlusSymmetricLowRank(prior_var, U, S)
-
-
-@fixture(scope="session")
 def fnola_last_layer(
     R: jax.Array,
     W: jax.Array,
     b: jax.Array,
-    weight_cov: linox.IsotropicScalingPlusSymmetricLowRank,
+    weight_covariance: linox.IsotropicScalingPlusSymmetricLowRank,
     projection: Callable[[jax.Array], jax.Array],
     num_output_channels: int,
 ) -> nola.FNOLALastLayer:
@@ -51,7 +23,7 @@ def fnola_last_layer(
         R=R,
         W=W,
         b=b,
-        weight_cov=weight_cov,
+        weight_cov=weight_covariance,
         projection=projection,
         num_output_channels=num_output_channels,
     )
