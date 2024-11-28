@@ -29,7 +29,7 @@ classifiers = [
 dependencies = [
     "numpy>=1.21.2",
     "jax",
-    "linox",
+    #"linox", # Somehow this dependency breaks installation.
 ]
 dynamic = [
     "version",
