@@ -5,7 +5,7 @@
 # see https://peps.python.org/pep-0621/
 
 [project]
-name = "nola"
+name = "lugano"
 description = "Laplace Approximations of Bayesian Neural Operators"
 readme = "README.md"
 requires-python = ">=3.10,<3.12"
@@ -41,7 +41,7 @@ plotting = [
 ]
 
 [project.urls]
-github = "https://github.com/MethodsOfMachineLearning/nola"
+github = "https://github.com/MethodsOfMachineLearning/lugano"
 
 ################################################################################
 # PEP 518 Build System Configuration                                           #
@@ -61,12 +61,12 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 platforms = ["any"]
 zip-safe = false
-packages = ["nola"]
+packages = ["lugano"]
 package-dir = { "" = "src" }
 include-package-data = true
 
 [tool.setuptools.dynamic]
-version = { attr = "nola.__version__" }
+version = { attr = "lugano.__version__" }
 
 ################################################################################
 # Testing Configuration                                                         #

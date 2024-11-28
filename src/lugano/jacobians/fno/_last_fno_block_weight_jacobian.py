@@ -2,18 +2,17 @@ from __future__ import annotations
 
 import functools
 import operator
+from collections.abc import Callable
 
 import jax
-from jax import numpy as jnp
 import linox
+from jax import numpy as jnp
+from jax.typing import ArrayLike, DTypeLike
 from linox._arithmetic import CongruenceTransform
 
-from nola.covariances.fno import CircularlySymmetricDiagonal
-from nola.models.fno import dft, fno_block
-from nola.models.fno._periodic_interpolation import gridded_fourier_interpolation
-
-from collections.abc import Callable
-from jax.typing import ArrayLike, DTypeLike
+from lugano.covariances.fno import CircularlySymmetricDiagonal
+from lugano.models.fno import dft, fno_block
+from lugano.models.fno._periodic_interpolation import gridded_fourier_interpolation
 
 
 class LastFNOBlockWeightJacobian(linox.LinearOperator):

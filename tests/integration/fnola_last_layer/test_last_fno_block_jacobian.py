@@ -1,14 +1,12 @@
+from collections.abc import Callable
+
 import jax
-from jax import numpy as jnp
 import linox
 import numpy as np
-
+from jax import numpy as jnp
+from lugano.covariances.fno import CircularlySymmetricDiagonal
+from lugano.jacobians.fno import LastFNOBlockWeightJacobian
 from pytest_cases import fixture
-
-from nola.covariances.fno import CircularlySymmetricDiagonal
-from nola.jacobians.fno import LastFNOBlockWeightJacobian
-
-from collections.abc import Callable
 
 
 @fixture(scope="session")

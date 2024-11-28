@@ -1,12 +1,11 @@
+from collections.abc import Callable
+
 import jax
 import linox
-
+import lugano
 from pytest_cases import fixture
+
 from tests.utils import assert_samples_marginally_gaussian
-
-import nola
-
-from collections.abc import Callable
 
 
 @fixture(scope="session")
@@ -17,8 +16,8 @@ def fnola_last_layer(
     weight_covariance: linox.IsotropicScalingPlusSymmetricLowRank,
     projection: Callable[[jax.Array], jax.Array],
     num_output_channels: int,
-) -> nola.FNOLALastLayer:
-    return nola.FNOLALastLayer(
+) -> lugano.FNOLALastLayer:
+    return lugano.FNOLALastLayer(
         fno_head=lambda x: x,
         R=R,
         W=W,
@@ -30,14 +29,14 @@ def fnola_last_layer(
 
 
 def test_sample(
-    fnola_last_layer: nola.FNOLALastLayer,
+    fnola_last_layer: lugano.FNOLALastLayer,
     v_in: jax.Array,
     input_grid_shape: tuple[int, ...],
     output_grid_shape: tuple[int, ...] | None,
 ):
     parametric_gp = fnola_last_layer(v_in)
 
-    xs = nola.models.fno.FFTGrid(
+    xs = lugano.models.fno.FFTGrid(
         output_grid_shape if output_grid_shape is not None else input_grid_shape
     )
 

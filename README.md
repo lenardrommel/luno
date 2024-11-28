@@ -1,1 +1,1 @@
-# `nola`: Laplace Approximations of Bayesian Neural Operators
+# `lugano`: Laplace Approximations of Bayesian Neural Operators

@@ -1,12 +1,10 @@
 import fractions
 
 import jax
-from jax import numpy as jnp
+import lugano
 import numpy as np
-
+from jax import numpy as jnp
 from pytest_cases import AUTO, parametrize
-
-import nola
 
 
 @parametrize(
@@ -25,7 +23,7 @@ def test_rfftn_truncation(grid_shape: tuple[int, ...], modes_shape: tuple[int, .
         shape=grid_shape,
     )
 
-    z_trunc = nola.models.fno.dft.rfftn(
+    z_trunc = lugano.models.fno.dft.rfftn(
         signal,
         modes_shape=modes_shape,
         axes=tuple(range(signal.ndim)),
@@ -75,7 +73,7 @@ def test_odd_irfftn_interpolates(
 
     signal_rfft = jnp.fft.rfftn(signal, axes=tuple(range(signal.ndim)), norm="forward")
 
-    signal_interp = nola.models.fno.dft.irfftn(
+    signal_interp = lugano.models.fno.dft.irfftn(
         signal_rfft,
         grid_shape=output_grid_shape,
         axes=tuple(range(signal.ndim)),

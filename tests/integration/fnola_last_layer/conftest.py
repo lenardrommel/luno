@@ -1,7 +1,9 @@
-import jax
-from jax import numpy as jnp
-import linox
+from collections.abc import Callable
 
+import jax
+import linox
+import lugano
+from jax import numpy as jnp
 from pytest_cases import (
     AUTO,
     fixture,
@@ -9,11 +11,8 @@ from pytest_cases import (
     parametrize_with_cases,
     unpack_fixture,
 )
+
 from tests.models.fno.fno_block.cases import FNOBlockCase
-
-import nola
-
-from collections.abc import Callable
 
 
 @fixture(scope="session")
@@ -106,7 +105,7 @@ def _random_circularly_symmetric_diagonal(
     modes_shape: tuple[int, ...],
     num_input_channels: int,
     num_hidden_channels: int,
-) -> nola.covariances.fno.CircularlySymmetricDiagonal:
+) -> lugano.covariances.fno.CircularlySymmetricDiagonal:
     key = jax.random.key(
         36789 + sum(modes_shape) + num_input_channels + num_hidden_channels
     )
@@ -124,18 +123,18 @@ def _random_circularly_symmetric_diagonal(
     key, subkey = jax.random.split(subkey)
     b = jax.random.gamma(subkey, 1.0, shape=(num_hidden_channels,))
 
-    return nola.covariances.fno.CircularlySymmetricDiagonal(R_real, W, b)
+    return lugano.covariances.fno.CircularlySymmetricDiagonal(R_real, W, b)
 
 
 def case_weight_covariance_circularly_symmetric_diagonal(
-    _random_circularly_symmetric_diagonal: nola.covariances.fno.CircularlySymmetricDiagonal,
-) -> nola.covariances.fno.CircularlySymmetricDiagonal:
+    _random_circularly_symmetric_diagonal: lugano.covariances.fno.CircularlySymmetricDiagonal,
+) -> lugano.covariances.fno.CircularlySymmetricDiagonal:
     return _random_circularly_symmetric_diagonal
 
 
 @parametrize("rank", (10,), idgen=AUTO)
 def case_weight_covariance_diagonal_plus_low_rank(
-    _random_circularly_symmetric_diagonal: nola.covariances.fno.CircularlySymmetricDiagonal,
+    _random_circularly_symmetric_diagonal: lugano.covariances.fno.CircularlySymmetricDiagonal,
     rank: int,
 ) -> linox.PositiveDiagonalPlusSymmetricLowRank:
     key = jax.random.key(65789 + _random_circularly_symmetric_diagonal.shape[0])

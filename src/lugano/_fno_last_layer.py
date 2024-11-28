@@ -1,19 +1,18 @@
 from __future__ import annotations
 
 import functools
+from collections.abc import Callable
 
 import jax
-from jax import numpy as jnp
 import linox
 import linox.utils
-
-from nola.jacobians.fno import LastFNOBlockWeightJacobian
-from nola.models.fno import FFTGrid, fno_block
-from nola.randprocs import ParametricGaussianProcess
-
-from collections.abc import Callable
+from jax import numpy as jnp
 from jax.typing import ArrayLike
 from linox.typing import LinearOperatorLike
+
+from lugano.jacobians.fno import LastFNOBlockWeightJacobian
+from lugano.models.fno import FFTGrid, fno_block
+from lugano.randprocs import ParametricGaussianProcess
 
 
 class FNOLALastLayer:
