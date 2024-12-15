@@ -52,6 +52,12 @@ class ParametricGaussianProcess:
         size: ShapeLike = (),
         dtype: DTypeLike = jnp.float32,
     ) -> ArrayLike:
+        if x.dtype != dtype:
+            msg = (
+                f"GP input dtype {x.dtype} doesn't match explicit sample dtype {dtype}."
+            )
+            raise TypeError(msg)
+
         weight_cov_lsqrt = linox.lsqrt(self._weight_cov)
 
         weight_sample = jax.random.normal(
@@ -74,7 +80,11 @@ class ParametricGaussianProcess:
     def mean_and_cov(self, x: ArrayLike, /) -> tuple[jax.Array, linox.LinearOperator]:
         mean_x, features_x = self.mean_and_features(x)
 
-        return mean_x, linox.congruence_transform(features_x, self._weight_cov)
+        # return mean_x, linox.congruence_transform(features_x, self._weight_cov)
+        weight_cov_sqrt = linox.lsqrt(self._weight_cov)
+        return mean_x, linox.congruence_transform(
+            features_x, weight_cov_sqrt @ weight_cov_sqrt.T
+        )
 
     def mean(self, x: ArrayLike, /) -> ArrayLike:
         return self.mean_and_features(x)[0]

@@ -102,6 +102,7 @@ class FNOLALastLayer:
                 num_output_channels=self._num_output_channels,
                 z_in=intermediates["spectral_convolution"]["z_in"],
                 v_out=v_out,
+                dtype=x.dtype,  # Infer dtype from grid.
             )
 
             return u.reshape(-1), features
