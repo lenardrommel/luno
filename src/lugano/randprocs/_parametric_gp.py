@@ -80,11 +80,7 @@ class ParametricGaussianProcess:
     def mean_and_cov(self, x: ArrayLike, /) -> tuple[jax.Array, linox.LinearOperator]:
         mean_x, features_x = self.mean_and_features(x)
 
-        # return mean_x, linox.congruence_transform(features_x, self._weight_cov)
-        weight_cov_sqrt = linox.lsqrt(self._weight_cov)
-        return mean_x, linox.congruence_transform(
-            features_x, weight_cov_sqrt @ weight_cov_sqrt.T
-        )
+        return mean_x, linox.congruence_transform(features_x, self._weight_cov)
 
     def mean(self, x: ArrayLike, /) -> ArrayLike:
         return self.mean_and_features(x)[0]
