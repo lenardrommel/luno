@@ -1,8 +1,8 @@
-from collections.abc import Callable
-
 import jax
-import linox
 from jax import numpy as jnp
+import linox
+
+from collections.abc import Callable
 from jax.typing import ArrayLike, DTypeLike
 from linox.typing import ShapeLike
 
@@ -52,12 +52,6 @@ class ParametricGaussianProcess:
         size: ShapeLike = (),
         dtype: DTypeLike = jnp.float32,
     ) -> ArrayLike:
-        if x.dtype != dtype:
-            msg = (
-                f"GP input dtype {x.dtype} doesn't match explicit sample dtype {dtype}."
-            )
-            raise TypeError(msg)
-
         weight_cov_lsqrt = linox.lsqrt(self._weight_cov)
 
         weight_sample = jax.random.normal(
@@ -68,6 +62,12 @@ class ParametricGaussianProcess:
         weight_sample = weight_cov_lsqrt @ weight_sample
 
         def sample_fn(x: ArrayLike) -> jax.Array:
+            if x.dtype != dtype:
+                raise TypeError(
+                    f"GP input dtype {x.dtype} doesn't match explicit sample "
+                    f"dtype {dtype}."
+                )
+
             mean_x, features_x = self.mean_and_features(x)
 
             return mean_x + (features_x @ weight_sample)[..., 0]

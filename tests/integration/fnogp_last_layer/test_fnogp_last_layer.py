@@ -1,11 +1,13 @@
-from collections.abc import Callable
-
 import jax
 import linox
-import lugano
-from pytest_cases import fixture
+import numpy as np
 
+from pytest_cases import fixture
 from tests.utils import assert_samples_marginally_gaussian
+
+import lugano
+
+from collections.abc import Callable
 
 
 @fixture(scope="session")
@@ -37,7 +39,8 @@ def test_sample(
     parametric_gp = fnogp_last_layer(v_in)
 
     xs = lugano.models.fno.FFTGrid(
-        output_grid_shape if output_grid_shape is not None else input_grid_shape
+        output_grid_shape if output_grid_shape is not None else input_grid_shape,
+        dtype=np.single,
     )
 
     key = jax.random.key(34890)
