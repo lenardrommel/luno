@@ -9,15 +9,15 @@ from tests.utils import assert_samples_marginally_gaussian
 
 
 @fixture(scope="session")
-def fnola_last_layer(
+def fnogp_last_layer(
     R: jax.Array,
     W: jax.Array,
     b: jax.Array,
     weight_covariance: linox.IsotropicScalingPlusSymmetricLowRank,
     projection: Callable[[jax.Array], jax.Array],
     num_output_channels: int,
-) -> lugano.FNOLALastLayer:
-    return lugano.FNOLALastLayer(
+) -> lugano.FNOGPLastLayer:
+    return lugano.FNOGPLastLayer(
         fno_head=lambda x: x,
         R=R,
         W=W,
@@ -29,12 +29,12 @@ def fnola_last_layer(
 
 
 def test_sample(
-    fnola_last_layer: lugano.FNOLALastLayer,
+    fnogp_last_layer: lugano.FNOGPLastLayer,
     v_in: jax.Array,
     input_grid_shape: tuple[int, ...],
     output_grid_shape: tuple[int, ...] | None,
 ):
-    parametric_gp = fnola_last_layer(v_in)
+    parametric_gp = fnogp_last_layer(v_in)
 
     xs = lugano.models.fno.FFTGrid(
         output_grid_shape if output_grid_shape is not None else input_grid_shape

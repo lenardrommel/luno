@@ -7,7 +7,7 @@ from . import (
     jacobians,
 )
 
-from ._fno_last_layer import FNOLALastLayer
+from ._fno_last_layer import FNOGPLastLayer
 
 # isort: on
 

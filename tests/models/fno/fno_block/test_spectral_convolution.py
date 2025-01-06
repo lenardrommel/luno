@@ -15,7 +15,7 @@ def test_spectral_convolution(
     pdebench.skip_if_case_unsupported(R.shape[:-2], output_grid_shape)
 
     # Compute reference output
-    pdebench_spectral_conv = pdebench.spectal_convolution_from_nola_weights(R)
+    pdebench_spectral_conv = pdebench.spectal_convolution_from_lugano_weights(R)
 
     v_out_sconv_ref_torch = pdebench_spectral_conv(v_in_torch)
 

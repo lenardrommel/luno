@@ -15,7 +15,7 @@ from lugano.models.fno import FFTGrid, fno_block
 from lugano.randprocs import ParametricGaussianProcess
 
 
-class FNOLALastLayer:
+class FNOGPLastLayer:
     def __init__(
         self,
         fno_head: Callable[[jax.Array], jax.Array],
@@ -37,12 +37,12 @@ class FNOLALastLayer:
         self._projection = projection
         self._num_output_channels = num_output_channels
 
-    def __call__(self, a: ArrayLike) -> FNOLALastLayer.FixedInputGaussianProcess:
+    def __call__(self, a: ArrayLike) -> FNOGPLastLayer.FixedInputGaussianProcess:
         a = jnp.asarray(a)
 
         v_in = self._fno_head(a)
 
-        return FNOLALastLayer.FixedInputGaussianProcess(
+        return FNOGPLastLayer.FixedInputGaussianProcess(
             v_in,
             self._R,
             self._W,

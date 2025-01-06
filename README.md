@@ -1,1 +1,1 @@
-# `lugano`: Laplace Approximations of Bayesian Neural Operators
+# LUGaNO: Linearized Predictive Uncertainty from Gaussian Weights in Neural Operators
