@@ -1,12 +1,14 @@
-from collections.abc import Callable
-
 import jax
+from jax import numpy as jnp
 import linox
 import numpy as np
-from jax import numpy as jnp
+
+from pytest_cases import fixture
+
 from lugano.covariances.fno import CircularlySymmetricDiagonal
 from lugano.jacobians.fno import LastFNOBlockWeightJacobian
-from pytest_cases import fixture
+
+from collections.abc import Callable
 
 
 @fixture(scope="session")
@@ -48,6 +50,49 @@ def test_linearized_pushforward_marginal_covariance(
     np.testing.assert_allclose(
         linox.diagonal(JSigmaJT),
         jnp.diag(JSigmaJT.todense()),
+        rtol=1e-5,
+        atol=1e-5,
+    )
+
+
+def test_linearized_pushforward_marginal_covariance_compare_isotropic_circularly_symmetric(
+    jacobian: LastFNOBlockWeightJacobian,
+    R: jax.Array,
+    W: jax.Array,
+    b: jax.Array,
+    random_symmetric_low_rank: linox.SymmetricLowRank,
+):
+    var = 0.42
+
+    isotropic_weight_precision = linox.IsotropicScalingPlusSymmetricLowRank(
+        var,
+        random_symmetric_low_rank.U,
+        random_symmetric_low_rank.S,
+    )
+    circularly_symmetric_weight_precision = linox.PositiveDiagonalPlusSymmetricLowRank(
+        CircularlySymmetricDiagonal(
+            jnp.full_like(R.real, var),
+            jnp.full_like(W, var),
+            jnp.full_like(b, var),
+        ),
+        random_symmetric_low_rank,
+    )
+
+    isotropic_weight_covariance = linox.linverse(isotropic_weight_precision)
+    circularly_symmetric_weight_covariance = linox.linverse(
+        circularly_symmetric_weight_precision
+    )
+
+    JSigmaJT_isotropic = linox.congruence_transform(
+        jacobian, isotropic_weight_covariance
+    )
+    JSigmaJT_circularly_symmetric = linox.congruence_transform(
+        jacobian, circularly_symmetric_weight_covariance
+    )
+
+    np.testing.assert_allclose(
+        linox.diagonal(JSigmaJT_isotropic),
+        linox.diagonal(JSigmaJT_circularly_symmetric),
         rtol=1e-5,
         atol=1e-5,
     )

@@ -1,9 +1,7 @@
-from collections.abc import Callable
-
 import jax
-import linox
-import lugano
 from jax import numpy as jnp
+import linox
+
 from pytest_cases import (
     AUTO,
     fixture,
@@ -11,8 +9,11 @@ from pytest_cases import (
     parametrize_with_cases,
     unpack_fixture,
 )
-
 from tests.models.fno.fno_block.cases import FNOBlockCase
+
+import lugano
+
+from collections.abc import Callable
 
 
 @fixture(scope="session")
@@ -90,14 +91,21 @@ def b(num_hidden_channels: int) -> jax.Array:
     )
 
 
-def case_weight_covariance_scaled_identity(
+@fixture(scope="session")
+def real_weights_size(
     R: jax.Array,
     W: jax.Array,
     b: jax.Array,
+) -> int:
+    return 2 * R.size + W.size + b.size
+
+
+def case_weight_covariance_scaled_identity(
+    real_weights_size: int,
 ) -> linox.LinearOperator:
     var = 0.42
 
-    return var * linox.Identity(2 * R.size + W.size + b.size)
+    return var * linox.Identity(real_weights_size)
 
 
 @fixture(scope="session")
@@ -132,23 +140,34 @@ def case_weight_covariance_circularly_symmetric_diagonal(
     return _random_circularly_symmetric_diagonal
 
 
-@parametrize("rank", (10,), idgen=AUTO)
-def case_weight_covariance_diagonal_plus_low_rank(
-    _random_circularly_symmetric_diagonal: lugano.covariances.fno.CircularlySymmetricDiagonal,
-    rank: int,
-) -> linox.PositiveDiagonalPlusSymmetricLowRank:
-    key = jax.random.key(65789 + _random_circularly_symmetric_diagonal.shape[0])
+@fixture(scope="session")
+# @parametrize("rank", (10,), idgen=AUTO)
+def random_symmetric_low_rank(
+    real_weights_size: int,
+    # rank: int,
+) -> linox.SymmetricLowRank:
+    rank = 10
+
+    key = jax.random.key(36789 + real_weights_size + rank)
+
     U, S, _ = jnp.linalg.svd(
         jax.random.normal(
             key,
-            shape=(_random_circularly_symmetric_diagonal.shape[0], rank),
+            shape=(real_weights_size, rank),
         ),
         full_matrices=False,
     )
 
+    return linox.SymmetricLowRank(U, S**2)
+
+
+def case_weight_covariance_diagonal_plus_low_rank(
+    _random_circularly_symmetric_diagonal: lugano.covariances.fno.CircularlySymmetricDiagonal,
+    random_symmetric_low_rank: linox.SymmetricLowRank,
+) -> linox.PositiveDiagonalPlusSymmetricLowRank:
     return linox.PositiveDiagonalPlusSymmetricLowRank(
         _random_circularly_symmetric_diagonal,
-        linox.SymmetricLowRank(U, S**2),
+        random_symmetric_low_rank,
     )
 
 
