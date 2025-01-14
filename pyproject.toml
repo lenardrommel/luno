@@ -8,7 +8,7 @@
 name = "lugano"
 description = "Linearized Predictive Uncertainty from Gaussian Weights in Neural Operators"
 readme = "README.md"
-requires-python = ">=3.10,<3.12"
+requires-python = ">=3.10,<=3.12"
 keywords = [
     "neural-operators",
     "uncertainty-quantification",
