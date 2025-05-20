@@ -1,8 +1,9 @@
 import jax
-import lugano
 import numpy as np
 import torch
 from pytest_cases import fixture, parametrize_with_cases, unpack_fixture
+
+import luno
 
 from .cases import FNOBlockCase
 
@@ -98,7 +99,7 @@ def _fno_block_out(
     b: jax.Array,
     output_grid_shape: tuple[int, ...],
 ):
-    return lugano.models.fno.fno_block(
+    return luno.models.fno.fno_block(
         v_in,
         R,
         W,

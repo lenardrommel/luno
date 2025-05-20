@@ -1,7 +1,0 @@
--r tests/requirements.txt
--r formatting-requirements.txt
--r linting-requirements.txt
-
--e ./deps/linox
-
--e .

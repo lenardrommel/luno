@@ -1,7 +1,8 @@
-import jax
-from jax import numpy as jnp
-import linox
+from collections.abc import Callable
 
+import jax
+import linox
+from jax import numpy as jnp
 from pytest_cases import (
     AUTO,
     fixture,
@@ -9,11 +10,9 @@ from pytest_cases import (
     parametrize_with_cases,
     unpack_fixture,
 )
+
+import luno
 from tests.models.fno.fno_block.cases import FNOBlockCase
-
-import lugano
-
-from collections.abc import Callable
 
 
 @fixture(scope="session")
@@ -113,7 +112,7 @@ def _random_circularly_symmetric_diagonal(
     modes_shape: tuple[int, ...],
     num_input_channels: int,
     num_hidden_channels: int,
-) -> lugano.covariances.fno.CircularlySymmetricDiagonal:
+) -> luno.covariances.fno.CircularlySymmetricDiagonal:
     key = jax.random.key(
         36789 + sum(modes_shape) + num_input_channels + num_hidden_channels
     )
@@ -131,12 +130,12 @@ def _random_circularly_symmetric_diagonal(
     key, subkey = jax.random.split(subkey)
     b = jax.random.gamma(subkey, 1.0, shape=(num_hidden_channels,))
 
-    return lugano.covariances.fno.CircularlySymmetricDiagonal(R_real, W, b)
+    return luno.covariances.fno.CircularlySymmetricDiagonal(R_real, W, b)
 
 
 def case_weight_covariance_circularly_symmetric_diagonal(
-    _random_circularly_symmetric_diagonal: lugano.covariances.fno.CircularlySymmetricDiagonal,
-) -> lugano.covariances.fno.CircularlySymmetricDiagonal:
+    _random_circularly_symmetric_diagonal: luno.covariances.fno.CircularlySymmetricDiagonal,
+) -> luno.covariances.fno.CircularlySymmetricDiagonal:
     return _random_circularly_symmetric_diagonal
 
 
@@ -162,7 +161,7 @@ def random_symmetric_low_rank(
 
 
 def case_weight_covariance_diagonal_plus_low_rank(
-    _random_circularly_symmetric_diagonal: lugano.covariances.fno.CircularlySymmetricDiagonal,
+    _random_circularly_symmetric_diagonal: luno.covariances.fno.CircularlySymmetricDiagonal,
     random_symmetric_low_rank: linox.SymmetricLowRank,
 ) -> linox.PositiveDiagonalPlusSymmetricLowRank:
     return linox.PositiveDiagonalPlusSymmetricLowRank(

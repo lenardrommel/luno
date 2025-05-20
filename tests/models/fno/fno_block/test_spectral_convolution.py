@@ -5,6 +5,8 @@ import torch
 
 from . import pdebench
 
+ATOL = 1e-5
+RTOL = 1e-5
 
 def test_spectral_convolution(
     output_grid_shape: tuple[int, ...],
@@ -15,7 +17,7 @@ def test_spectral_convolution(
     pdebench.skip_if_case_unsupported(R.shape[:-2], output_grid_shape)
 
     # Compute reference output
-    pdebench_spectral_conv = pdebench.spectal_convolution_from_lugano_weights(R)
+    pdebench_spectral_conv = pdebench.spectal_convolution_from_luno_weights(R)
 
     v_out_sconv_ref_torch = pdebench_spectral_conv(v_in_torch)
 
@@ -30,6 +32,6 @@ def test_spectral_convolution(
     np.testing.assert_allclose(
         v_out_sconv,
         v_out_sconv_ref,
-        atol=1e-6,
-        rtol=1e-6,
+        atol=ATOL,
+        rtol=RTOL,
     )

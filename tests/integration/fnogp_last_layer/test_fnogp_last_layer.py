@@ -1,13 +1,12 @@
+from collections.abc import Callable
+
 import jax
 import linox
 import numpy as np
-
 from pytest_cases import fixture
+
+import luno
 from tests.utils import assert_samples_marginally_gaussian
-
-import lugano
-
-from collections.abc import Callable
 
 
 @fixture(scope="session")
@@ -18,8 +17,8 @@ def fnogp_last_layer(
     weight_covariance: linox.IsotropicScalingPlusSymmetricLowRank,
     projection: Callable[[jax.Array], jax.Array],
     num_output_channels: int,
-) -> lugano.FNOGPLastLayer:
-    return lugano.FNOGPLastLayer(
+) -> luno.FNOGPLastLayer:
+    return luno.FNOGPLastLayer(
         fno_head=lambda x: x,
         R=R,
         W=W,
@@ -31,14 +30,14 @@ def fnogp_last_layer(
 
 
 def test_sample(
-    fnogp_last_layer: lugano.FNOGPLastLayer,
+    fnogp_last_layer: luno.FNOGPLastLayer,
     v_in: jax.Array,
     input_grid_shape: tuple[int, ...],
     output_grid_shape: tuple[int, ...] | None,
 ):
     parametric_gp = fnogp_last_layer(v_in)
 
-    xs = lugano.models.fno.FFTGrid(
+    xs = luno.models.fno.FFTGrid(
         output_grid_shape if output_grid_shape is not None else input_grid_shape,
         dtype=np.single,
     )

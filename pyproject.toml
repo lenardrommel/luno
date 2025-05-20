@@ -5,10 +5,10 @@
 # see https://peps.python.org/pep-0621/
 
 [project]
-name = "lugano"
-description = "Linearized Predictive Uncertainty from Gaussian Weights in Neural Operators"
+name = "luno"
+description = "Linearized Uncertainty for Neural Operators"
 readme = "README.md"
-requires-python = ">=3.10,<=3.12"
+requires-python = ">=3.10"
 keywords = [
     "neural-operators",
     "uncertainty-quantification",
@@ -28,8 +28,8 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.21.2",
-    "jax",
-    #"linox", # Somehow this dependency breaks installation.
+    "jax<=0.4.48",
+    "linox @ git+https://github.com/2bys/linox.git",
 ]
 dynamic = [
     "version",
@@ -39,9 +39,17 @@ dynamic = [
 plotting = [
     "matplotlib>=3.4.3",
 ]
+dev = [
+    "black~=24.8",
+    "isort~=5.13",
+    "pylint~=3.2",
+    "pytest~=8.3",
+    "pytest-cases~=3.8",
+    "torch~=2.5.1", # Test against PDEBench
+]
 
 [project.urls]
-github = "https://github.com/MethodsOfMachineLearning/lugano"
+github = "https://github.com/MethodsOfMachineLearning/luno"
 
 ################################################################################
 # PEP 518 Build System Configuration                                           #
@@ -61,12 +69,12 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 platforms = ["any"]
 zip-safe = false
-packages = ["lugano"]
+packages = ["luno"]
 package-dir = { "" = "src" }
 include-package-data = true
 
 [tool.setuptools.dynamic]
-version = { attr = "lugano.__version__" }
+version = { attr = "luno.__version__" }
 
 ################################################################################
 # Testing Configuration                                                         #

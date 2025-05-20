@@ -11,7 +11,7 @@ import pytest
 from numpy.typing import ArrayLike
 
 
-def spectal_convolution_from_lugano_weights(
+def spectal_convolution_from_luno_weights(
     R: ArrayLike,
 ) -> SpectralConv1d | SpectralConv2d_fast | SpectralConv3d:
     R = np.asarray(R)
@@ -61,7 +61,7 @@ class FNOBlock(nn.Module):
         W = np.asarray(W)
         b = np.asarray(b)
 
-        self.conv0 = spectal_convolution_from_lugano_weights(R)
+        self.conv0 = spectal_convolution_from_luno_weights(R)
 
         # Linear skip connection
         D = R.ndim - 2
