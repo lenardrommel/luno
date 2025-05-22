@@ -1,15 +1,16 @@
-import jax
-from jax import numpy as jnp
-import linox
-import numpy as np
-
-from pytest_cases import fixture
-
-from lugano.covariances.fno import CircularlySymmetricDiagonal
-from lugano.jacobians.fno import LastFNOBlockWeightJacobian
-
 from collections.abc import Callable
 
+import jax
+import linox
+import numpy as np
+from jax import numpy as jnp
+from pytest_cases import fixture
+
+from luno.covariances.fno import CircularlySymmetricDiagonal
+from luno.jacobians.fno import LastFNOBlockWeightJacobian
+
+ATOL = 1e-5
+RTOL = 1e-5
 
 @fixture(scope="session")
 def jacobian(
@@ -50,8 +51,8 @@ def test_linearized_pushforward_marginal_covariance(
     np.testing.assert_allclose(
         linox.diagonal(JSigmaJT),
         jnp.diag(JSigmaJT.todense()),
-        rtol=1e-5,
-        atol=1e-5,
+        rtol=RTOL,
+        atol=ATOL,
     )
 
 
@@ -93,6 +94,6 @@ def test_linearized_pushforward_marginal_covariance_compare_isotropic_circularly
     np.testing.assert_allclose(
         linox.diagonal(JSigmaJT_isotropic),
         linox.diagonal(JSigmaJT_circularly_symmetric),
-        rtol=1e-5,
-        atol=1e-5,
+        rtol=RTOL,
+        atol=ATOL,
     )

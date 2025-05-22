@@ -10,9 +10,9 @@ from jax import numpy as jnp
 from jax.typing import ArrayLike, DTypeLike
 from linox._arithmetic import CongruenceTransform
 
-from lugano.covariances.fno import CircularlySymmetricDiagonal
-from lugano.models.fno import dft, fno_block
-from lugano.models.fno._periodic_interpolation import gridded_fourier_interpolation
+from luno.covariances.fno import CircularlySymmetricDiagonal
+from luno.models.fno import dft, fno_block
+from luno.models.fno._periodic_interpolation import gridded_fourier_interpolation
 
 
 class LastFNOBlockWeightJacobian(linox.LinearOperator):

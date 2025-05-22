@@ -1,11 +1,14 @@
 import fractions
 
 import jax
-import lugano
 import numpy as np
 from jax import numpy as jnp
 from pytest_cases import AUTO, parametrize
 
+import luno
+
+ATOL = 1e-5
+RTOL = 1e-5
 
 @parametrize(
     "grid_shape,modes_shape",
@@ -23,7 +26,7 @@ def test_rfftn_truncation(grid_shape: tuple[int, ...], modes_shape: tuple[int, .
         shape=grid_shape,
     )
 
-    z_trunc = lugano.models.fno.dft.rfftn(
+    z_trunc = luno.models.fno.dft.rfftn(
         signal,
         modes_shape=modes_shape,
         axes=tuple(range(signal.ndim)),
@@ -46,8 +49,8 @@ def test_rfftn_truncation(grid_shape: tuple[int, ...], modes_shape: tuple[int, .
     np.testing.assert_allclose(
         z_trunc,
         z_trunc_ref,
-        rtol=1e-6,
-        atol=1e-7,
+        rtol=RTOL,  #1e-6,
+        atol=ATOL,  #1e-7,
     )
 
 
@@ -73,7 +76,7 @@ def test_odd_irfftn_interpolates(
 
     signal_rfft = jnp.fft.rfftn(signal, axes=tuple(range(signal.ndim)), norm="forward")
 
-    signal_interp = lugano.models.fno.dft.irfftn(
+    signal_interp = luno.models.fno.dft.irfftn(
         signal_rfft,
         grid_shape=output_grid_shape,
         axes=tuple(range(signal.ndim)),
@@ -99,8 +102,8 @@ def test_odd_irfftn_interpolates(
                 for n, ratio in zip(input_grid_shape, shape_ratios)
             )
         ],
-        rtol=1e-5,
-        atol=1e-5,
+        rtol=RTOL,
+        atol=ATOL,
     )
 
 

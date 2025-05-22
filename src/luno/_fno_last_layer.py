@@ -10,9 +10,9 @@ from jax import numpy as jnp
 from jax.typing import ArrayLike
 from linox.typing import LinearOperatorLike
 
-from lugano.jacobians.fno import LastFNOBlockWeightJacobian
-from lugano.models.fno import FFTGrid, fno_block
-from lugano.randprocs import ParametricGaussianProcess
+from luno.jacobians.fno import LastFNOBlockWeightJacobian
+from luno.models.fno import FFTGrid, fno_block
+from luno.randprocs import ParametricGaussianProcess
 
 
 class FNOGPLastLayer:
