@@ -28,8 +28,8 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.21.2",
-    "jax<=0.4.48",
-    "linox @ git+https://github.com/2bys/linox.git",
+    "jax<=0.6.2",
+    "linox @ git+https://github.com/lenardrommel/linox.git",
 ]
 dynamic = [
     "version",

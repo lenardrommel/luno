@@ -9,6 +9,8 @@ from pytest_cases import fixture
 import luno
 from tests.utils import assert_samples_marginally_gaussian
 
+jax.config.update("jax_enable_x64", False)
+
 
 @fixture(scope="module")
 def num_features() -> int:

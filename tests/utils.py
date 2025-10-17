@@ -15,7 +15,7 @@ def assert_samples_marginally_gaussian(
     mean = np.expand_dims(mean, axis=axis)
     std = np.expand_dims(std, axis=axis)
 
-    samples_standardized = (samples - mean) / std
+    samples_standardized = (samples - mean) / (std + 1e-6)
 
     # Map standardized samples through standard normal cdf and compare to uniform cdf
     samples_norm_cdf = scipy.stats.norm.cdf(samples_standardized)
